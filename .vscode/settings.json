@@ -1,0 +1,49 @@
+{
+  // VSCode
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.exclude": {
+    ".git": true,
+    ".venv": true,
+    "**/__pycache__": true,
+    ".pytest_cache": true,
+    ".mypy_cache": true,
+    ".coverage": true,
+    "coverage.xml": true,
+    "htmlcov": true,
+    "**/*.pyc": true,
+    ".ruff_cache": true
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "editor.renderWhitespace": "all",
+  "editor.rulers": [88],
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "workbench.editor.enablePreview": false,
+  // Plugins
+  "autoDocstring.docstringFormat": "numpy",
+  "coverage-gutters.coverageReportFileName": "htmlcov/index.html",
+  "prettier.printWidth": 88,
+  "todo-tree.general.tags": [
+    // Default
+    "BUG",
+    "HACK",
+    "FIXME",
+    "TODO",
+    "XXX",
+    "[ ]",
+    "[x]",
+    // Custom
+    "WARN"
+  ],
+  "todo-tree.regex.regex": "(//|#|<!--|;|/\\*|^|^[ \t]*(-|\\d+.))\\s*($TAGS)\\s",
+  // Python extension
+  "python.analysis.autoImportCompletions": false,
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "python.testing.pytestEnabled": true,
+  "mypy-type-checker.path": [".venv/bin/mypy"],
+  "mypy-type-checker.args": ["--check-untyped-defs"]
+}

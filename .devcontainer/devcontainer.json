@@ -1,0 +1,34 @@
+{
+  "name": "aiosalesforce",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // General
+        "GitHub.copilot",
+        "VisualStudioExptTeam.vscodeintellicode",
+        "Gruntfuggly.todo-tree",
+        "bierner.github-markdown-preview",
+        "cschleiden.vscode-github-actions",
+        "ryanluker.vscode-coverage-gutters",
+        "hbenl.vscode-test-explorer",
+        // Formatters
+        "esbenp.prettier-vscode",
+        "yzhang.markdown-all-in-one",
+        "tamasfe.even-better-toml",
+        "redhat.vscode-yaml",
+        // Python
+        "ms-python.python",
+        "njpwerner.autodocstring",
+        "LittleFoxTeam.vscode-python-test-adapter",
+        "charliermarsh.ruff",
+        "ms-python.mypy-type-checker"
+      ]
+    }
+  },
+  "postCreateCommand": ".devcontainer/post-create.sh"
+}

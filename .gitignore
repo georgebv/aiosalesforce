@@ -1,0 +1,18 @@
+# python generated files
+__pycache__/
+*.py[cod]
+build/
+dist/
+wheels/
+*.egg-info
+
+# venv
+.venv
+
+# testing
+.pytest_cache
+.coverage
+coverage.xml
+
+# linting
+.mypy_cache
