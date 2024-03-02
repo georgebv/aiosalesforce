@@ -1,0 +1,36 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - "created"
+
+jobs:
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yml
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yml
+  publish:
+    name: Publish to PyPI
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    environment:
+      name: PyPI
+      url: https://pypi.org/project/aiosalesforce
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # TODO cache rye installation
+      - name: Install rye
+        run: RUN curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
+      - name: Install project and its dependencies
+        run: rye sync
+      - name: Publish
+        run: rye publish --token ${{ secrets.PYPI_TOKEN }} --yes

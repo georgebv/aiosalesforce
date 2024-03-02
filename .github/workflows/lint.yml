@@ -1,0 +1,30 @@
+name: Lint
+
+on:
+  workflow_call:
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  lint:
+    name: Lint with Ruff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # TODO cache rye installation
+      - name: Install rye
+        run: RUN curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
+      - name: Install project and its dependencies
+        run: rye sync
+      - name: Run Ruff linter
+        run: rye run ruff check .
+      - name: Run Ruff import sorter
+        run: rye run ruff check --select I .
+      - name: Run Ruff formatter
+        run: rye run ruff format --check .
