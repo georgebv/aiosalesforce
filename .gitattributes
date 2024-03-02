@@ -1,0 +1,10 @@
+# Python source files
+*.py text diff=python eol=lf
+
+# Plain text files
+.gitattributes text eol=lf
+.gitignore text eol=lf
+LICENSE text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.lock text eol=lf
