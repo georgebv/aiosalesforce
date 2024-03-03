@@ -1,8 +1,7 @@
 from httpx import AsyncClient
 
+from aiosalesforce.auth.base import Auth
 from aiosalesforce.exceptions import AuthenticationError
-
-from .base import Auth
 
 
 class ClientCredentialsFlow(Auth):
