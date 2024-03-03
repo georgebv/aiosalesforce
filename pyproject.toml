@@ -43,7 +43,7 @@ packages = ["src/aiosalesforce"]
 
 [tool.ruff]
 # https://docs.astral.sh/ruff/rules
-select = [
+lint.select = [
     # Pyflakes
     "F",
     # pycodestyle
@@ -65,7 +65,7 @@ select = [
     # Ruff-specific rules
     "RUF",
 ]
-ignore = [
+lint.ignore = [
     # Bandit: assert statement
     "S101",
     # `subprocess` call: check for execution of untrusted input
