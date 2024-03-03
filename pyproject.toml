@@ -1,6 +1,6 @@
 [project]
 name = "aiosalesforce"
-version = "0.0.1"
+dynamic = ["version"]
 dependencies = [
     "httpx>=0.27.0",
 ]
@@ -35,15 +35,18 @@ dev-dependencies = [
     "mypy>=1.8.0",
 ]
 
+[tool.hatch.version]
+path = "src/aiosalesforce/__init__.py"
+
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/aiosalesforce"]
 
-[tool.ruff]
+[tool.ruff.lint]
 # https://docs.astral.sh/ruff/rules
-lint.select = [
+select = [
     # Pyflakes
     "F",
     # pycodestyle
@@ -65,7 +68,7 @@ lint.select = [
     # Ruff-specific rules
     "RUF",
 ]
-lint.ignore = [
+ignore = [
     # Bandit: assert statement
     "S101",
     # `subprocess` call: check for execution of untrusted input
