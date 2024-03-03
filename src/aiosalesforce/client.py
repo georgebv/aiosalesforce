@@ -1,6 +1,12 @@
 import re
+import warnings
 
-from httpx import AsyncClient
+from typing import AsyncIterator
+
+from httpx import AsyncClient, Response
+
+from aiosalesforce import __version__
+from aiosalesforce.exceptions import QueryError
 
 from .auth import Auth
 
@@ -51,3 +57,72 @@ class AsyncSalesforce:
                 f"for sandbox."
             )
         self.base_url = match_.groups()[0]
+
+    async def _request(self, *args, **kwargs) -> Response:
+        headers: dict = kwargs.pop("headers", {})
+        access_token = await self.auth.get_access_token(
+            client=self.http_client,
+            base_url=self.base_url,
+            version=self.version,
+        )
+        headers.update(
+            {
+                "Authorization": f"Bearer {access_token}",
+                "User-Agent": f"aiosalesforce/{__version__}",
+            }
+        )
+        response = await self.http_client.request(
+            *args,
+            **kwargs,
+            headers=headers,
+        )
+        if "Warning" in response.headers:
+            warnings.warn(response.headers["Warning"])
+        return response
+
+    async def query(self, query: str) -> AsyncIterator[dict]:
+        """
+        Run a SOQL query.
+
+        Parameters
+        ----------
+        query : str
+            SOQL query.
+
+        Returns
+        -------
+        AsyncIterator[dict]
+            An asynchronous iterator of query results.
+
+        """
+        next_url: str | None = None
+        while True:
+            if next_url is None:
+                response = await self._request(
+                    "GET",
+                    f"{self.base_url}/services/data/v{self.version}/query",
+                    params={"q": query},
+                )
+            else:
+                response = await self._request("GET", f"{self.base_url}{next_url}")
+            response_json = response.json()
+            if not response.is_success:
+                if not isinstance(response_json, list):
+                    raise QueryError(response.text)
+                if len(response_json) == 1:
+                    raise QueryError(
+                        f"{response_json[0]['errorCode']}: "
+                        f"{response_json[0]['message']}"
+                    )
+                raise ExceptionGroup(
+                    f"Failed to run query: {query}",
+                    [
+                        QueryError(f"{error['errorCode']}: {error['message']}")
+                        for error in response_json
+                    ],
+                )
+            for record in response_json["records"]:
+                yield record
+            next_url = response_json.get("nextRecordsUrl", None)
+            if next_url is None:
+                break

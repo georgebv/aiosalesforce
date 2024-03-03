@@ -8,18 +8,19 @@ from aiosalesforce.exceptions import AuthenticationError
 
 
 class SoapLogin(Auth):
+    """
+    Authenticate using the SOAP login method.
+
+    https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_calls_login.htm
+
+    """
+
     def __init__(
         self,
         username: str,
         password: str,
         security_token: str,
     ):
-        """
-        Authenticate using the SOAP login method.
-
-        https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_calls_login.htm
-
-        """
         super().__init__()
         self.username = username
         self.password = password

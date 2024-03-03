@@ -12,3 +12,7 @@ class AuthorizationError(SalesforceError):
 
 class RequestLimitError(SalesforceError):
     """Raised when org REST API request limit is reached."""
+
+
+class QueryError(SalesforceError):
+    """Raised when query fails."""
