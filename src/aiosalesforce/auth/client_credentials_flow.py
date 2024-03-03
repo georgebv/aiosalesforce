@@ -33,7 +33,7 @@ class ClientCredentialsFlow(Auth):
             },
         )
         if not response.is_success:
-            raise AuthenticationError(response.text)
+            raise AuthenticationError(response.text, response)
         return response.json()["access_token"]
 
     async def _refresh_access_token(

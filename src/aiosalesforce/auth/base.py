@@ -1,8 +1,12 @@
+import logging
+
 from abc import ABC, abstractmethod
 from asyncio import Lock
 from typing import final
 
 from httpx import AsyncClient
+
+logger = logging.getLogger(__name__)
 
 
 class Auth(ABC):
@@ -21,6 +25,11 @@ class Auth(ABC):
             return self._access_token
         async with self._lock:
             if self._access_token is None:
+                logger.debug(
+                    "Acquiring new access token using %s for %s",
+                    self.__class__.__name__,
+                    base_url,
+                )
                 self._access_token = await self._acquire_new_access_token(
                     client=client,
                     base_url=base_url,
@@ -40,6 +49,11 @@ class Auth(ABC):
         token = self._access_token
         async with self._lock:
             if token == self._access_token:
+                logger.debug(
+                    "Refreshing access token using %s for %s",
+                    self.__class__.__name__,
+                    base_url,
+                )
                 self._access_token = await self._refresh_access_token(
                     client=client,
                     base_url=base_url,

@@ -65,11 +65,12 @@ class SoapLogin(Auth):
                 message = f"SOAP login failed: {response_text}"
             else:
                 message = f"SOAP login failed: {match_.groups()[0]}"
-            raise AuthenticationError(message)
+            raise AuthenticationError(message, response)
         match_ = re.search(r"<sessionId>(.+)<\/sessionId>", response_text)
         if match_ is None:
             raise AuthenticationError(
-                f"Failed to parse sessionId from the SOAP response: {response_text}"
+                f"Failed to parse sessionId from the SOAP response: {response_text}",
+                response,
             )
         return match_.groups()[0]
 
