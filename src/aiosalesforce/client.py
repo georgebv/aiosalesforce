@@ -8,10 +8,10 @@ from typing import AsyncIterator
 from httpx import AsyncClient, Response
 
 from aiosalesforce import __version__
+from aiosalesforce.auth import Auth
 from aiosalesforce.exceptions import SalesforceWarning, raise_salesforce_error
+from aiosalesforce.retries import Retry
 from aiosalesforce.sobject import AsyncSobjectClient
-
-from .auth import Auth
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +43,12 @@ class AsyncSalesforce:
         base_url: str,
         auth: Auth,
         version: str = "60.0",
+        retry: Retry | None = None,
     ) -> None:
         self.http_client = http_client
         self.auth = auth
         self.version = version
+        self.retry = retry
 
         # Validate url
         match_ = re.fullmatch(
@@ -68,6 +70,16 @@ class AsyncSalesforce:
 
     @wraps(AsyncClient.request)
     async def _request(self, *args, **kwargs) -> Response:
+        while True:
+            response = await self.__request(*args, **kwargs)
+            request_failed = not response.is_success or response.status_code == 300
+            if not request_failed:
+                return response
+            if self.retry is None or not self.retry.should_retry(response):
+                raise_salesforce_error(response)
+            await self.retry.sleep()
+
+    async def __request(self, *args, **kwargs) -> Response:
         access_token = await self.auth.get_access_token(
             client=self.http_client,
             base_url=self.base_url,
@@ -92,8 +104,6 @@ class AsyncSalesforce:
             response = await self.http_client.send(request)
         if "Warning" in response.headers:
             warnings.warn(response.headers["Warning"], SalesforceWarning)
-        if not response.is_success or response.status_code == 300:
-            raise_salesforce_error(response)
         return response
 
     async def query(self, query: str) -> AsyncIterator[dict]:
