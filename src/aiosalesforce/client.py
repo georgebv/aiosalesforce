@@ -1,24 +1,42 @@
+import logging
 import re
 import warnings
 
+from functools import wraps
 from typing import AsyncIterator
 
 from httpx import AsyncClient, Response
 
 from aiosalesforce import __version__
-from aiosalesforce.exceptions import (
-    InvalidTypeError,
-    MalformedQueryError,
-    NotFoundError,
-    RequestLimitExceededError,
-    SalesforceError,
-    SalesforceWarning,
-)
+from aiosalesforce.exceptions import SalesforceWarning, raise_salesforce_error
+from aiosalesforce.sobject import AsyncSobjectClient
 
 from .auth import Auth
 
+logger = logging.getLogger(__name__)
+
 
 class AsyncSalesforce:
+    """
+    Asynchronous Salesforce client.
+
+    Parameters
+    ----------
+    http_client : AsyncClient
+        Asynchronous HTTP client.
+    base_url : str
+        Base URL of the Salesforce instance.
+        Must be in the format:
+            - https://[MyDomainName].my.salesforce.com
+            - https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com
+    auth : Auth
+        Authentication object.
+    version : str, optional
+        Salesforce API version.
+        Uses the latest version
+
+    """
+
     def __init__(
         self,
         http_client: AsyncClient,
@@ -26,25 +44,6 @@ class AsyncSalesforce:
         auth: Auth,
         version: str = "60.0",
     ) -> None:
-        """
-        Asynchronous Salesforce client.
-
-        Parameters
-        ----------
-        http_client : AsyncClient
-            Asynchronous HTTP client.
-        base_url : str
-            Base URL of the Salesforce instance.
-            Must be in the format:
-                - https://[MyDomainName].my.salesforce.com
-                - https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com
-        auth : Auth
-            Authentication object.
-        version : str, optional
-            Salesforce API version.
-            Uses the latest version
-
-        """
         self.http_client = http_client
         self.auth = auth
         self.version = version
@@ -65,6 +64,9 @@ class AsyncSalesforce:
             )
         self.base_url = match_.groups()[0]
 
+        self.__sobject_client: AsyncSobjectClient | None = None
+
+    @wraps(AsyncClient.request)
     async def _request(self, *args, **kwargs) -> Response:
         access_token = await self.auth.get_access_token(
             client=self.http_client,
@@ -90,55 +92,8 @@ class AsyncSalesforce:
             response = await self.http_client.send(request)
         if "Warning" in response.headers:
             warnings.warn(response.headers["Warning"], SalesforceWarning)
-        if not response.is_success:
-            errors: list[SalesforceError] = []
-            for error in response.json():
-                match (response.status_code, error["errorCode"]):
-                    case (_, "REQUEST_LIMIT_EXCEEDED"):
-                        errors.append(
-                            RequestLimitExceededError(
-                                error["message"],
-                                response,
-                            )
-                        )
-                    case (_, "MALFORMED_QUERY"):
-                        errors.append(
-                            MalformedQueryError(
-                                error["message"],
-                                response,
-                            )
-                        )
-                    case (_, "INVALID_TYPE"):
-                        errors.append(
-                            InvalidTypeError(
-                                error["message"],
-                                response,
-                            )
-                        )
-                    case (_, "NOT_FOUND"):
-                        errors.append(
-                            NotFoundError(
-                                error["message"],
-                                response,
-                            )
-                        )
-                    case _:
-                        errors.append(
-                            SalesforceError(
-                                f"{error['errorCode']}: {error['message']}",
-                                response,
-                            )
-                        )
-            raise ExceptionGroup(
-                "\n".join(
-                    [
-                        "",
-                        f"{response.status_code}: {response.reason_phrase}",
-                        f"{request.method} {request.url}",
-                    ]
-                ),
-                errors,
-            )
+        if not response.is_success or response.status_code == 300:
+            raise_salesforce_error(response)
         return response
 
     async def query(self, query: str) -> AsyncIterator[dict]:
@@ -208,3 +163,13 @@ class AsyncSalesforce:
             next_url = response_json.get("nextRecordsUrl", None)
             if next_url is None:
                 break
+
+    @property
+    def sobject(self) -> AsyncSobjectClient:
+        """
+        Salesforce REST API sObject client.
+
+        """
+        if self.__sobject_client is None:
+            self.__sobject_client = AsyncSobjectClient(self)
+        return self.__sobject_client
