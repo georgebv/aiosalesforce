@@ -41,6 +41,14 @@ path = "src/aiosalesforce/__init__.py"
 [tool.hatch.metadata]
 allow-direct-references = true
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/aiosalesforce/**/*.py",
+    "src/aiosalesforce/py.typed",
+    "README.md",
+    "LICENSE",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/aiosalesforce"]
 

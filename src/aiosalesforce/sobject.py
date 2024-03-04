@@ -203,6 +203,27 @@ class AsyncSobjectClient:
         /,
         data: dict | str | bytes,
     ) -> UpsertResponse:
+        """
+        Upsert (update if exists, create if not) record by external ID.
+
+        Parameters
+        ----------
+        sobject : str
+            Salesforce object name.
+            E.g. "Account", "Contact", etc.
+        id_ : str
+            Salesforce record external ID.
+        external_id_field : str
+            External ID field name.
+        data : dict | str | bytes
+            Data to upsert the record with.
+
+        Returns
+        -------
+        UpsertResponse
+            Dataclass with 'id' and 'created' fields.
+
+        """
         if isinstance(data, dict):
             data.pop(external_id_field, None)
         elif (
