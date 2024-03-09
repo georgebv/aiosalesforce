@@ -26,6 +26,9 @@ class ClientCredentialsFlow(Auth):
         del version  # not used in this flow (this line is for linter)
         response = await client.post(
             f"{base_url}/services/oauth2/token",
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
             data={
                 "grant_type": "client_credentials",
                 "client_id": self.client_id,
@@ -35,11 +38,3 @@ class ClientCredentialsFlow(Auth):
         if not response.is_success:
             raise AuthenticationError(response.text, response)
         return response.json()["access_token"]
-
-    async def _refresh_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-    ) -> str:
-        return await self._acquire_new_access_token(client, base_url, version)

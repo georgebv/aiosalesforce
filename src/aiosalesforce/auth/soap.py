@@ -50,9 +50,9 @@ class SoapLogin(Auth):
             f"{base_url}/services/Soap/u/{version}",
             content=textwrap.dedent(soap_xml_payload).strip(),
             headers={
-                "Content-Type": "text/xml",
-                "Charset": "UTF-8",
+                "Content-Type": "text/xml; charset=UTF-8",
                 "SOAPAction": "login",
+                "Accept": "text/xml",
             },
         )
         response_text = response.text
@@ -73,11 +73,3 @@ class SoapLogin(Auth):
                 response,
             )
         return match_.groups()[0]
-
-    async def _refresh_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-    ) -> str:
-        return await self._acquire_new_access_token(client, base_url, version)
