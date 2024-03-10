@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .client import AsyncSalesforce
+    from .client import Salesforce
 
 logger = logging.getLogger(__name__)
 
@@ -16,21 +16,32 @@ class UpsertResponse:
     created: bool
 
 
-class AsyncSobjectClient:
+class SobjectClient:
     """
     Salesforce REST API sObject client.
 
     Parameters
     ----------
-    salesforce_client : AsyncSalesforce
+    salesforce_client : Salesforce
         Salesforce client.
 
     """
 
-    __slots__ = ("salesforce_client",)
+    salesforce_client: "Salesforce"
+    base_url: str
+    """Base URL in the format https://[subdomain(s)].my.salesforce.com/services/data/v[version]/sobjects"""
 
-    def __init__(self, salesforce_client: "AsyncSalesforce") -> None:
+    def __init__(self, salesforce_client: "Salesforce") -> None:
         self.salesforce_client = salesforce_client
+        self.base_url = "/".join(
+            [
+                f"{self.salesforce_client.base_url}",
+                "services",
+                "data",
+                f"v{self.salesforce_client.version}",
+                "sobjects",
+            ]
+        )
 
     async def create(
         self,
@@ -55,18 +66,9 @@ class AsyncSobjectClient:
             ID of the created record.
 
         """
-        response = await self.salesforce_client._request(
+        response = await self.salesforce_client.request(
             "POST",
-            "/".join(
-                [
-                    f"{self.salesforce_client.base_url}",
-                    "services",
-                    "data",
-                    f"v{self.salesforce_client.version}",
-                    "sobjects",
-                    f"{sobject}",
-                ]
-            ),
+            f"{self.base_url}/{sobject}",
             json=data,
         )
         return response.json()["id"]
@@ -99,16 +101,7 @@ class AsyncSobjectClient:
         dict
             _description_
         """
-        url = "/".join(
-            [
-                f"{self.salesforce_client.base_url}",
-                "services",
-                "data",
-                f"v{self.salesforce_client.version}",
-                "sobjects",
-                f"{sobject}",
-            ]
-        )
+        url = f"{self.base_url}/{sobject}"
         if external_id_field is None:
             url += f"/{id_}"
         else:
@@ -118,7 +111,7 @@ class AsyncSobjectClient:
         if fields is not None:
             params["fields"] = ",".join(fields)
 
-        response = await self.salesforce_client._request("GET", url, params=params)
+        response = await self.salesforce_client.request("GET", url, params=params)
         return response.json()
 
     async def update(
@@ -142,19 +135,9 @@ class AsyncSobjectClient:
             Data to update the record with.
 
         """
-        await self.salesforce_client._request(
+        await self.salesforce_client.request(
             "PATCH",
-            "/".join(
-                [
-                    f"{self.salesforce_client.base_url}",
-                    "services",
-                    "data",
-                    f"v{self.salesforce_client.version}",
-                    "sobjects",
-                    f"{sobject}",
-                    f"{id_}",
-                ]
-            ),
+            f"{self.base_url}/{sobject}/{id_}",
             json=data,
         )
 
@@ -179,21 +162,12 @@ class AsyncSobjectClient:
             External ID field name, by default None.
 
         """
-        url = "/".join(
-            [
-                f"{self.salesforce_client.base_url}",
-                "services",
-                "data",
-                f"v{self.salesforce_client.version}",
-                "sobjects",
-                f"{sobject}",
-            ]
-        )
+        url = f"{self.base_url}/{sobject}"
         if external_id_field is None:
             url += f"/{id_}"
         else:
             url += f"/{external_id_field}/{id_}"
-        await self.salesforce_client._request("DELETE", url)
+        await self.salesforce_client.request("DELETE", url)
 
     async def upsert(
         self,
@@ -238,19 +212,9 @@ class AsyncSobjectClient:
                 )
             data.pop(external_id_field, None)
 
-        response = await self.salesforce_client._request(
+        response = await self.salesforce_client.request(
             "PATCH",
-            "/".join(
-                [
-                    f"{self.salesforce_client.base_url}",
-                    "services",
-                    "data",
-                    f"v{self.salesforce_client.version}",
-                    "sobjects",
-                    f"{sobject}",
-                    f"{external_id_field}/{id_}",
-                ]
-            ),
+            f"{self.base_url}/{sobject}/{external_id_field}/{id_}",
             json=data,
         )
         response_json = response.json()

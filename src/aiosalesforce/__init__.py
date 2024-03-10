@@ -1,7 +1,7 @@
 __version__ = "0.0.1"
 
 __all__ = [
-    "AsyncSalesforce",
+    "Salesforce",
 ]
 
-from .client import AsyncSalesforce
+from .client import Salesforce

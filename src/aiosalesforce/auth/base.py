@@ -29,7 +29,7 @@ class Auth(ABC):
 
         Parameters
         ----------
-        client : AsyncClient
+        client : httpx.AsyncClient
             HTTP client.
         base_url : str
             Salesforce base URL.
@@ -72,7 +72,7 @@ class Auth(ABC):
 
         Parameters
         ----------
-        client : AsyncClient
+        client : httpx.AsyncClient
             HTTP client.
         base_url : str
             Salesforce base URL.
@@ -116,7 +116,7 @@ class Auth(ABC):
 
         Parameters
         ----------
-        client : AsyncClient
+        client : httpx.AsyncClient
             HTTP client.
         base_url : str
             Salesforce base URL.
@@ -143,7 +143,7 @@ class Auth(ABC):
 
         Parameters
         ----------
-        client : AsyncClient
+        client : httpx.AsyncClient
             HTTP client.
         base_url : str
             Salesforce base URL.

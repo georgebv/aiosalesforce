@@ -2,7 +2,7 @@ import logging
 import re
 import warnings
 
-from functools import wraps
+from functools import cached_property, wraps
 from typing import AsyncIterator
 
 from httpx import AsyncClient, Response
@@ -10,20 +10,19 @@ from httpx import AsyncClient, Response
 from aiosalesforce import __version__
 from aiosalesforce.auth import Auth
 from aiosalesforce.exceptions import SalesforceWarning, raise_salesforce_error
-from aiosalesforce.retries import Retry
-from aiosalesforce.sobject import AsyncSobjectClient
+from aiosalesforce.sobject import SobjectClient
 
 logger = logging.getLogger(__name__)
 
 
-class AsyncSalesforce:
+class Salesforce:
     """
-    Asynchronous Salesforce client.
+    Salesforce API client.
 
     Parameters
     ----------
-    http_client : AsyncClient
-        Asynchronous HTTP client.
+    httpx_client : httpx.AsyncClient
+        HTTP client.
     base_url : str
         Base URL of the Salesforce instance.
         Must be in the format:
@@ -33,22 +32,26 @@ class AsyncSalesforce:
         Authentication object.
     version : str, optional
         Salesforce API version.
-        Uses the latest version
+        By default, uses the latest version.
 
     """
 
+    httpx_client: AsyncClient
+    base_url: str
+    """Base URL in the format https://[subdomain(s)].my.salesforce.com"""
+    auth: Auth
+    version: str
+
     def __init__(
         self,
-        http_client: AsyncClient,
+        httpx_client: AsyncClient,
         base_url: str,
         auth: Auth,
         version: str = "60.0",
-        retry: Retry | None = None,
     ) -> None:
-        self.http_client = http_client
+        self.httpx_client = httpx_client
         self.auth = auth
         self.version = version
-        self.retry = retry
 
         # Validate url
         match_ = re.fullmatch(
@@ -64,58 +67,63 @@ class AsyncSalesforce:
                 f"https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com "
                 f"for sandbox."
             )
-        self.base_url = match_.groups()[0]
-
-        self.__sobject_client: AsyncSobjectClient | None = None
+        self.base_url = str(match_.groups()[0])
 
     @wraps(AsyncClient.request)
-    async def _request(self, *args, **kwargs) -> Response:
-        while True:
-            response = await self.__request(*args, **kwargs)
-            request_failed = not response.is_success or response.status_code == 300
-            if not request_failed:
-                return response
-            if self.retry is None or not self.retry.should_retry(response):
-                raise_salesforce_error(response)
-            await self.retry.sleep()
+    async def request(self, *args, **kwargs) -> Response:
+        """
+        Make an HTTP request to Salesforce.
 
-    async def __request(self, *args, **kwargs) -> Response:
+        """
+        request = self.httpx_client.build_request(*args, **kwargs)
         access_token = await self.auth.get_access_token(
-            client=self.http_client,
+            client=self.httpx_client,
             base_url=self.base_url,
             version=self.version,
         )
-        headers: dict = kwargs.pop("headers", {})
-        headers.update(
+        request.headers.update(
             {
                 "Authorization": f"Bearer {access_token}",
                 "User-Agent": f"aiosalesforce/{__version__}",
+                "Sforce-Call-Options": f"client=aiosalesforce/{__version__}",
             }
         )
-        request = self.http_client.build_request(*args, **kwargs, headers=headers)
-        response = await self.http_client.send(request)
-        if response.status_code == 401:
-            access_token = await self.auth.refresh_access_token(
-                client=self.http_client,
-                base_url=self.base_url,
-                version=self.version,
-            )
-            request.headers["Authorization"] = f"Bearer {access_token}"
-            response = await self.http_client.send(request)
+        refreshed: bool = False
+        while True:
+            response = await self.httpx_client.send(request)
+            if response.status_code < 300:
+                break
+            if response.status_code == 401:
+                if refreshed:
+                    raise_salesforce_error(response)
+                access_token = await self.auth.refresh_access_token(
+                    client=self.httpx_client,
+                    base_url=self.base_url,
+                    version=self.version,
+                )
+                request.headers["Authorization"] = f"Bearer {access_token}"
+                refreshed = True
+                continue
+            # TODO Check retry policies
+            raise_salesforce_error(response)
         if "Warning" in response.headers:
             warnings.warn(response.headers["Warning"], SalesforceWarning)
         return response
 
-    async def query(self, query: str) -> AsyncIterator[dict]:
+    async def query(
+        self,
+        query: str,
+        include_deleted_records: bool = False,
+    ) -> AsyncIterator[dict]:
         """
         Execute a SOQL query.
-
-        Includes only active records (NOT deleted/archived).
 
         Parameters
         ----------
         query : str
             SOQL query.
+        include_deleted_records : bool, optional
+            If True, includes all (active/deleted/archived) records.
 
         Returns
         -------
@@ -123,16 +131,18 @@ class AsyncSalesforce:
             An asynchronous iterator of query results.
 
         """
+        operation = "query" if not include_deleted_records else "queryAll"
+
         next_url: str | None = None
         while True:
             if next_url is None:
-                response = await self._request(
+                response = await self.request(
                     "GET",
-                    f"{self.base_url}/services/data/v{self.version}/query",
+                    f"{self.base_url}/services/data/v{self.version}/{operation}",
                     params={"q": query},
                 )
             else:
-                response = await self._request("GET", f"{self.base_url}{next_url}")
+                response = await self.request("GET", f"{self.base_url}{next_url}")
             response_json: dict = response.json()
             for record in response_json["records"]:
                 yield record
@@ -140,46 +150,12 @@ class AsyncSalesforce:
             if next_url is None:
                 break
 
-    async def query_all(self, query: str) -> AsyncIterator[dict]:
-        """
-        Execute a SOQL query.
-
-        Includes all (active/deleted/archived) records.
-
-        Parameters
-        ----------
-        query : str
-            SOQL query.
-
-        Returns
-        -------
-        AsyncIterator[dict]
-            An asynchronous iterator of query results.
-
-        """
-        next_url: str | None = None
-        while True:
-            if next_url is None:
-                response = await self._request(
-                    "GET",
-                    f"{self.base_url}/services/data/v{self.version}/queryAll",
-                    params={"q": query},
-                )
-            else:
-                response = await self._request("GET", f"{self.base_url}{next_url}")
-            response_json: dict = response.json()
-            for record in response_json["records"]:
-                yield record
-            next_url = response_json.get("nextRecordsUrl", None)
-            if next_url is None:
-                break
-
-    @property
-    def sobject(self) -> AsyncSobjectClient:
+    @cached_property
+    def sobject(self) -> SobjectClient:
         """
         Salesforce REST API sObject client.
 
+        Use this client to perform CRUD operations on individual sObjects.
+
         """
-        if self.__sobject_client is None:
-            self.__sobject_client = AsyncSobjectClient(self)
-        return self.__sobject_client
+        return SobjectClient(self)
