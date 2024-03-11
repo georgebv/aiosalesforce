@@ -6,6 +6,8 @@ from typing import final
 
 from httpx import AsyncClient
 
+from aiosalesforce.events import EventBus
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,6 +22,7 @@ class Auth(ABC):
         client: AsyncClient,
         base_url: str,
         version: str,
+        event_bus: EventBus,
     ) -> str:
         """
         Get access token.
@@ -37,6 +40,8 @@ class Auth(ABC):
         version : str
             REST API version.
             E.g., "57.0".
+        event_bus : aiosalesforce.events.EventBus
+            Event bus.
 
         Returns
         -------
@@ -57,6 +62,7 @@ class Auth(ABC):
                     client=client,
                     base_url=base_url,
                     version=version,
+                    event_bus=event_bus,
                 )
             return self.__access_token
 
@@ -66,6 +72,7 @@ class Auth(ABC):
         client: AsyncClient,
         base_url: str,
         version: str,
+        event_bus: EventBus,
     ) -> str:
         """
         Refresh the access token.
@@ -80,6 +87,8 @@ class Auth(ABC):
         version : str
             REST API version.
             E.g., "57.0".
+        event_bus : aiosalesforce.events.EventBus
+            Event bus.
 
         Returns
         -------
@@ -101,6 +110,7 @@ class Auth(ABC):
                     client=client,
                     base_url=base_url,
                     version=version,
+                    event_bus=event_bus,
                 )
             return self.__access_token
 
@@ -110,6 +120,7 @@ class Auth(ABC):
         client: AsyncClient,
         base_url: str,
         version: str,
+        event_bus: EventBus,
     ) -> str:
         """
         Acquire a new access token from Salesforce.
@@ -124,6 +135,8 @@ class Auth(ABC):
         version : str
             REST API version.
             E.g., "57.0".
+        event_bus : aiosalesforce.events.EventBus
+            Event bus.
 
         Returns
         -------
@@ -137,6 +150,7 @@ class Auth(ABC):
         client: AsyncClient,
         base_url: str,
         version: str,
+        event_bus: EventBus,
     ) -> str:
         """
         Refresh the access token.
@@ -151,6 +165,8 @@ class Auth(ABC):
         version : str
             REST API version.
             E.g., "57.0".
+        event_bus : aiosalesforce.events.EventBus
+            Event bus.
 
         Returns
         -------
@@ -162,4 +178,5 @@ class Auth(ABC):
             client=client,
             base_url=base_url,
             version=version,
+            event_bus=event_bus,
         )

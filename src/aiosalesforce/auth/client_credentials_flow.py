@@ -1,6 +1,7 @@
 from httpx import AsyncClient
 
 from aiosalesforce.auth.base import Auth
+from aiosalesforce.events import EventBus, RestApiCallConsumptionEvent
 from aiosalesforce.exceptions import AuthenticationError
 
 
@@ -22,6 +23,7 @@ class ClientCredentialsFlow(Auth):
         client: AsyncClient,
         base_url: str,
         version: str,
+        event_bus: EventBus,
     ) -> str:
         del version  # not used in this flow (this line is for linter)
         response = await client.post(
@@ -34,6 +36,12 @@ class ClientCredentialsFlow(Auth):
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
             },
+        )
+        await event_bus.publish_event(
+            RestApiCallConsumptionEvent(
+                type="rest_api_call_consumption",
+                response=response,
+            )
         )
         if not response.is_success:
             raise AuthenticationError(response.text, response)

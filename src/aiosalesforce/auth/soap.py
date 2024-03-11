@@ -4,6 +4,7 @@ import textwrap
 from httpx import AsyncClient
 
 from aiosalesforce.auth.base import Auth
+from aiosalesforce.events import EventBus, RestApiCallConsumptionEvent
 from aiosalesforce.exceptions import AuthenticationError
 
 
@@ -31,6 +32,7 @@ class SoapLogin(Auth):
         client: AsyncClient,
         base_url: str,
         version: str,
+        event_bus: EventBus,
     ) -> str:
         soap_xml_payload = f"""
         <?xml version="1.0" encoding="utf-8" ?>
@@ -54,6 +56,12 @@ class SoapLogin(Auth):
                 "SOAPAction": "login",
                 "Accept": "text/xml",
             },
+        )
+        await event_bus.publish_event(
+            RestApiCallConsumptionEvent(
+                type="rest_api_call_consumption",
+                response=response,
+            )
         )
         response_text = response.text
         if not response.is_success:

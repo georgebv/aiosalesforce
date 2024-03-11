@@ -1,17 +1,17 @@
-__version__ = "0.0.1"
-
 __all__ = [
-    "Salesforce",
+    "EventBus",
     "BulkApiBatchConsumptionEvent",
+    "Event",
     "RequestEvent",
     "ResponseEvent",
     "RestApiCallConsumptionEvent",
     "RetryEvent",
 ]
 
-from .client import Salesforce
+from .event_bus import EventBus
 from .events import (
     BulkApiBatchConsumptionEvent,
+    Event,
     RequestEvent,
     ResponseEvent,
     RestApiCallConsumptionEvent,
