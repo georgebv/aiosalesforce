@@ -23,7 +23,7 @@ jobs:
           python-version: "${{ matrix.python-version }}"
       # TODO cache rye installation
       - name: Install rye
-        run: RUN curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
+        run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
         run: rye sync
       - name: Run tests and generate coverage report
@@ -44,7 +44,7 @@ jobs:
         with:
           python-version: "${{ matrix.python-version }}"
       - name: Install rye
-        run: RUN curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
+        run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
         run: rye sync
       - name: Run tests and generate coverage report
