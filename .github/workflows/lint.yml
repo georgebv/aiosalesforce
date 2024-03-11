@@ -23,14 +23,8 @@ jobs:
       - name: Install project and its dependencies
         run: rye sync
       - name: Run Ruff linter
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye run ruff check .
+        run: ~/.rye/shims/rye run ruff check .
       - name: Run Ruff import sorter
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye run ruff check --select I .
+        run: ~/.rye/shims/rye run ruff check --select I .
       - name: Run Ruff formatter
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye run ruff format --check .
+        run: ~/.rye/shims/rye run ruff format --check .

@@ -31,10 +31,6 @@ jobs:
       - name: Install rye
         run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye sync
+        run: ~/.rye/shims/rye sync
       - name: Publish
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye publish --token ${{ secrets.PYPI_TOKEN }} --yes
+        run: ~/.rye/shims/rye publish --token ${{ secrets.PYPI_TOKEN }} --yes

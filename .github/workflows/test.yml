@@ -25,13 +25,9 @@ jobs:
       - name: Install rye
         run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye sync
+        run: ~/.rye/shims/rye sync
       - name: Run tests and generate coverage report
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye run pytest
+        run: ~/.rye/shims/rye run pytest
       # TODO upload coverage to codecov
   test-windows:
     name: Test on windows

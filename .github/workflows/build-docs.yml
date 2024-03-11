@@ -20,10 +20,6 @@ jobs:
       - name: Install rye
         run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye sync --no-lock
+        run: ~/.rye/shims/rye sync --no-lock
       - name: Build and deploy docs
-        run: |
-          export PATH="~/.rye/shims:$PATH"
-          rye run mkdocs gh-deploy --force
+        run: ~/.rye/shims/rye run mkdocs gh-deploy --force
