@@ -1,0 +1,1 @@
+::: aiosalesforce.sobject.SobjectClient

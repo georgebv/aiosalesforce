@@ -1,0 +1,63 @@
+site_name: aiosalesforce
+site_url: https://georgebv.github.io/aiosalesforce/
+repo_url: https://github.com/georgebv/aiosalesforce
+repo_name: georgebv/aiosalesforce
+site_description: Documentation for aiosalesforce, a Python library for Salesforce API
+site_author: George Bocharov
+copyright: Copyright &copy; 2024 George Bocharov
+
+nav:
+  - Introduction: index.md
+  - API Reference:
+      - Salesforce: api-reference/salesforce-client.md
+      - Salesforce.sobject: api-reference/sobject-client.md
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            docstring_style: "numpy"
+            show_root_heading: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/georgebv/
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/gbocharov/
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences

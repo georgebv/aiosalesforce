@@ -33,6 +33,9 @@ dev-dependencies = [
     "pytest-cov>=4.1.0",
     "ruff>=0.3.0",
     "mypy>=1.8.0",
+    "mkdocs>=1.5.3",
+    "mkdocs-material>=9.5.13",
+    "mkdocstrings[python]>=0.24.1",
 ]
 
 [tool.hatch.version]
