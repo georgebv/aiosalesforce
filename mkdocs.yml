@@ -7,7 +7,7 @@ site_author: George Bocharov
 copyright: Copyright &copy; 2024 George Bocharov
 
 nav:
-  - Introduction: index.md
+  - Home: index.md
   - API Reference:
       - Salesforce: api-reference/salesforce-client.md
       - Salesforce.sobject: api-reference/sobject-client.md
@@ -15,6 +15,10 @@ nav:
 theme:
   name: material
   features:
+    - navigation.tabs
+    - navigation.top
+    - navigation.prune
+    - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
     - search.suggest
@@ -54,6 +58,12 @@ extra:
       link: https://www.linkedin.com/in/gbocharov/
 
 markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - tables
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
