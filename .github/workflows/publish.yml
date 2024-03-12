@@ -32,5 +32,7 @@ jobs:
         run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
         run: ~/.rye/shims/rye sync
+      - name: Build
+        run: ~/.rye/shims/rye build
       - name: Publish
         run: ~/.rye/shims/rye publish --token ${{ secrets.PYPI_TOKEN }} --yes
