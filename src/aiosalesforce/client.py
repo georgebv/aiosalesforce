@@ -1,3 +1,5 @@
+import asyncio
+import itertools
 import logging
 import re
 import warnings
@@ -15,8 +17,10 @@ from aiosalesforce.events import (
     RequestEvent,
     ResponseEvent,
     RestApiCallConsumptionEvent,
+    RetryEvent,
 )
 from aiosalesforce.exceptions import SalesforceWarning, raise_salesforce_error
+from aiosalesforce.retries import POLICY_DEFAULT, RetryPolicy
 from aiosalesforce.sobject import SobjectClient
 
 logger = logging.getLogger(__name__)
@@ -33,23 +37,26 @@ class Salesforce:
     base_url : str
         Base URL of the Salesforce instance.
         Must be in the format:
-            - Production    : https://[MyDomainName].my.salesforce.com
-            - Sandbox       : https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com
-            - Developer org : https://[MyDomainName].develop.my.salesforce.com
+            Production    : https://[MyDomainName].my.salesforce.com
+            Sandbox       : https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com
+            Developer org : https://[MyDomainName].develop.my.salesforce.com
     auth : Auth
         Authentication object.
     version : str, optional
         Salesforce API version.
         By default, uses the latest version.
     event_hooks : list[Callable[[Event], Awaitable[None] | None]], optional
-        List of event hooks.
-        An event hook is a function taking a single argument which contains
-        information (type and context) about the event.
-        When an event occurs, all event hooks are called concurrently.
-        Therefore, the order of execution is not guaranteed and it is the
-        responsibility of the event hook to determine if it should react to the event.
-        Asynchronous event hooks are awaited concurrently and synchronous hooks
-        are executed using the running event loop's executor.
+        List of functions or coroutines executed when an event occurs.
+        Hooks are executed concurrently and order of execution is not guaranteed.
+        All hooks must be thread-safe.
+    retry_policy : RetryPolicy, optional
+        Retry policy for requests.
+        The default policy retries requests up to 3 times with exponential backoff
+        and retries the following:
+            httpx Transport errors (excluding timeouts)
+            Server errors (5xx)
+            Row lock errors
+            Rate limit errors
 
     """
 
@@ -59,6 +66,7 @@ class Salesforce:
     auth: Auth
     version: str
     event_bus: EventBus
+    retry_policy: RetryPolicy
 
     def __init__(
         self,
@@ -67,6 +75,7 @@ class Salesforce:
         auth: Auth,
         version: str = "60.0",
         event_hooks: list[Callable[[Event], Awaitable[None] | None]] | None = None,
+        retry_policy: RetryPolicy = POLICY_DEFAULT,
     ) -> None:
         self.httpx_client = httpx_client
         self.auth = auth
@@ -92,6 +101,7 @@ class Salesforce:
         self.base_url = str(match_.groups()[0])
 
         self.event_bus = EventBus(event_hooks)
+        self.retry_policy = retry_policy
 
     @wraps(httpx.AsyncClient.request)
     async def request(self, *args, **kwargs) -> httpx.Response:
@@ -117,9 +127,22 @@ class Salesforce:
         await self.event_bus.publish_event(
             RequestEvent(type="request", request=request)
         )
+
+        retry_context = self.retry_policy.create_context()
         refreshed: bool = False
-        while True:
-            response = await self.httpx_client.send(request)
+        for attempt in itertools.count():
+            try:
+                response = await self.httpx_client.send(request)
+            except Exception as exc:
+                if await retry_context.should_retry(exc):
+                    await asyncio.gather(
+                        self.retry_policy.sleep(attempt),
+                        self.event_bus.publish_event(
+                            RetryEvent(type="retry", request=request)
+                        ),
+                    )
+                    continue
+                raise
             await self.event_bus.publish_event(
                 RestApiCallConsumptionEvent(
                     type="rest_api_call_consumption", response=response
@@ -139,7 +162,18 @@ class Salesforce:
                 request.headers["Authorization"] = f"Bearer {access_token}"
                 refreshed = True
                 continue
-            # TODO Check retry policies; emit retry event
+            if await retry_context.should_retry(response):
+                await asyncio.gather(
+                    self.retry_policy.sleep(attempt),
+                    self.event_bus.publish_event(
+                        RetryEvent(
+                            type="retry",
+                            request=request,
+                            response=response,
+                        )
+                    ),
+                )
+                continue
             raise_salesforce_error(response)
         if "Warning" in response.headers:
             warnings.warn(response.headers["Warning"], SalesforceWarning)
@@ -151,7 +185,7 @@ class Salesforce:
     async def query(
         self,
         query: str,
-        include_deleted_records: bool = False,
+        include_all_records: bool = False,
     ) -> AsyncIterator[dict]:
         """
         Execute a SOQL query.
@@ -160,7 +194,7 @@ class Salesforce:
         ----------
         query : str
             SOQL query.
-        include_deleted_records : bool, optional
+        include_all_records : bool, optional
             If True, includes all (active/deleted/archived) records.
 
         Returns
@@ -169,7 +203,7 @@ class Salesforce:
             An asynchronous iterator of query results.
 
         """
-        operation = "query" if not include_deleted_records else "queryAll"
+        operation = "query" if not include_all_records else "queryAll"
 
         next_url: str | None = None
         while True:

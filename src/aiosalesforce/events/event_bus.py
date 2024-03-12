@@ -9,6 +9,16 @@ CallbackType: TypeAlias = Callable[[Event], Awaitable[None] | None]
 
 
 class EventBus:
+    """
+    Event bus used to dispatch events to subscribed callbacks.
+
+    Parameters
+    ----------
+    callbacks : list[Callable[[Event], Awaitable[None] | None]], optional
+        List of callbacks to subscribe to the event bus.
+
+    """
+
     _callbacks: set[CallbackType]
 
     def __init__(self, callbacks: list[CallbackType] | None = None) -> None:

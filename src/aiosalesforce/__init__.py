@@ -7,6 +7,9 @@ __all__ = [
     "ResponseEvent",
     "RestApiCallConsumptionEvent",
     "RetryEvent",
+    "ExceptionRule",
+    "ResponseRule",
+    "RetryPolicy",
 ]
 
 from .client import Salesforce
@@ -16,4 +19,9 @@ from .events import (
     ResponseEvent,
     RestApiCallConsumptionEvent,
     RetryEvent,
+)
+from .retries import (
+    ExceptionRule,
+    ResponseRule,
+    RetryPolicy,
 )

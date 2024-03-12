@@ -8,7 +8,7 @@ from httpx import Request, Response
 
 
 class ResponseMixin:
-    response: Response
+    response: Response | None
 
     @property
     def consumed(self) -> int | None:
@@ -20,6 +20,8 @@ class ResponseMixin:
 
     @cached_property
     def __api_usage(self) -> tuple[int, int] | tuple[None, None]:
+        if self.response is None:
+            return (None, None)
         if "application/json" not in self.response.headers.get("content-type", None):
             return (None, None)
         try:
@@ -48,31 +50,52 @@ class Event:
 
 @dataclass
 class RequestEvent(Event):
-    """Emitted before a request is sent for the first time."""
+    """
+    Emitted before a request is sent for the first time.
+
+    Is not emitted by authentication requests.
+
+    """
 
     type: Literal["request"]
     request: Request
 
 
 @dataclass
+class RetryEvent(Event, ResponseMixin):
+    """
+    Emitted immediately before a request is retried.
+
+    Is not emitted by authentication requests.
+
+    """
+
+    type: Literal["retry"]
+    request: Request
+    response: Response | None = None
+
+
+@dataclass
 class ResponseEvent(Event, ResponseMixin):
-    """Emitted after an OK response is received after the last retry attempt."""
+    """
+    Emitted after an OK (status code < 300) response is received.
+
+    Is not emitted by authentication requests.
+
+    """
 
     type: Literal["response"]
     response: Response
 
 
 @dataclass
-class RetryEvent(Event, ResponseMixin):
-    """Emitted immediately before a request is retried."""
-
-    type: Literal["retry"]
-    response: Response
-
-
-@dataclass
 class RestApiCallConsumptionEvent(Event, ResponseMixin):
-    """Emitted after a REST API call is consumed."""
+    """
+    Emitted after a REST API call is consumed.
+
+    Emitted by all requests, including authentication requests.
+
+    """
 
     type: Literal["rest_api_call_consumption"]
     response: Response
