@@ -30,6 +30,7 @@ jobs:
         run: ~/.rye/shims/rye run pytest
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        if: success() && matrix.python-version == '3.12'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
