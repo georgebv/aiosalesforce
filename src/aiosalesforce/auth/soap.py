@@ -68,17 +68,36 @@ class SoapLogin(Auth):
         )
         response_text = response.text
         if not response.is_success:
-            match_ = re.search(
-                r"<sf:exceptionMessage>(.+)<\/sf:exceptionMessage>",
-                response_text,
+            try:
+                exception_code = str(
+                    re.search(
+                        r"<sf:exceptionCode>(.+)<\/sf:exceptionCode>",
+                        response_text,
+                    ).groups()[0]  # type: ignore
+                )
+            except AttributeError:  # pragma: no cover
+                exception_code = None
+            try:
+                exception_message = str(
+                    re.search(
+                        r"<sf:exceptionMessage>(.+)<\/sf:exceptionMessage>",
+                        response_text,
+                    ).groups()[0]  # type: ignore
+                )
+            except AttributeError:  # pragma: no cover
+                exception_message = response_text
+            raise AuthenticationError(
+                message=(
+                    f"[{exception_code}] {exception_message}"
+                    if exception_code
+                    else exception_message
+                ),
+                response=response,
+                error_code=exception_code,
+                error_message=exception_message,
             )
-            if match_ is None:
-                message = f"SOAP login failed: {response_text}"
-            else:
-                message = f"SOAP login failed: {match_.groups()[0]}"
-            raise AuthenticationError(message, response)
         match_ = re.search(r"<sessionId>(.+)<\/sessionId>", response_text)
-        if match_ is None:
+        if match_ is None:  # pragma: no cover
             raise AuthenticationError(
                 f"Failed to parse sessionId from the SOAP response: {response_text}",
                 response,

@@ -41,6 +41,7 @@ dev-dependencies = [
     "pytest-asyncio>=0.23.5.post1",
     "pytest-cov>=4.1.0",
     "respx>=0.20.2",
+    "time-machine>=2.14.0",
 ]
 
 [tool.hatch.version]
