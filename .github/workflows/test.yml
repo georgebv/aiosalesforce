@@ -50,9 +50,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "${{ matrix.python-version }}"
-      - name: Install rye
-        uses: sksat/setup-rye@v0.18.0
+      # TODO rye doesn't work on windows so everything is hardcoded
       - name: Install project and its dependencies
-        run: rye sync
-      - name: Run tests and generate coverage report
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx pytest pytest-asyncio pytest-cov respx time-machine
+      - name: Run tests
         run: rye run pytest
