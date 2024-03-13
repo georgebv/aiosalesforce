@@ -5,6 +5,12 @@
     <em>Python client for the Salesforce REST API</em>
 </p>
 <p align="center">
+<a href="https://github.com/georgebv/aiosalesforce/actions/workflows/test.yml" target="_blank">
+    <img src="https://github.com/georgebv/aiosalesforce/actions/workflows/test.yml/badge.svg?event=pull_request" alt="Test">
+</a>
+<a href="https://codecov.io/gh/georgebv/aiosalesforce" target="_blank">
+    <img src="https://codecov.io/gh/georgebv/aiosalesforce/graph/badge.svg?token=KVMS7YVODO" alt="Coverage"/>
+</a>
 <a href="https://pypi.org/project/aiosalesforce" target="_blank">
     <img src="https://badge.fury.io/py/aiosalesforce.svg" alt="PyPI Package">
 </a>
