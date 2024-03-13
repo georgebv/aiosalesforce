@@ -44,5 +44,16 @@ class ClientCredentialsFlow(Auth):
             )
         )
         if not response.is_success:
-            raise AuthenticationError(response.text, response)
+            try:
+                error_code = response.json()["error"]
+                error_message = response.json()["error_description"]
+            except Exception:  # pragma: no cover
+                error_code = None
+                error_message = response.text
+            raise AuthenticationError(
+                f"[{error_code}] {error_message}" if error_code else error_message,
+                response=response,
+                error_code=error_code,
+                error_message=error_message,
+            )
         return response.json()["access_token"]

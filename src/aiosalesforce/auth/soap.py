@@ -120,6 +120,7 @@ class SoapLogin(Auth):
 
     @property
     def expired(self) -> bool:
+        super().expired
         if self._expiration_time is None:  # pragma: no cover
             return False
         return self._expiration_time <= time.time()
