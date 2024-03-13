@@ -28,7 +28,13 @@ jobs:
         run: ~/.rye/shims/rye sync
       - name: Run tests and generate coverage report
         run: ~/.rye/shims/rye run pytest
-      # TODO upload coverage to codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          file: ./coverage.xml
+          verbose: true
   # TODO Figure out how to run rye on windows
   # test-windows:
   #   name: Test on windows
