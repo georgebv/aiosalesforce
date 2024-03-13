@@ -1,5 +1,6 @@
 import re
 import textwrap
+import time
 
 from httpx import AsyncClient
 
@@ -26,6 +27,8 @@ class SoapLogin(Auth):
         self.username = username
         self.password = password
         self.security_token = security_token
+
+        self._expiration_time: float | None = None
 
     async def _acquire_new_access_token(
         self,
@@ -80,4 +83,24 @@ class SoapLogin(Auth):
                 f"Failed to parse sessionId from the SOAP response: {response_text}",
                 response,
             )
-        return match_.groups()[0]
+        session_id = match_.groups()[0]
+
+        # Parse expiration time
+        match_ = re.search(
+            r"<sessionSecondsValid>(.+)<\/sessionSecondsValid>",
+            response_text,
+        )
+        self._expiration_time = None
+        if match_ is not None:
+            try:
+                self._expiration_time = time.time() + int(match_.groups()[0])
+            except ValueError:  # pragma: no cover
+                pass
+
+        return session_id
+
+    @property
+    def expired(self) -> bool:
+        if self._expiration_time is None:  # pragma: no cover
+            return False
+        return self._expiration_time <= time.time()

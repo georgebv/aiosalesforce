@@ -37,6 +37,7 @@ httpcore==1.0.4
     # via httpx
 httpx==0.27.0
     # via aiosalesforce
+    # via respx
 idna==3.6
     # via anyio
     # via httpx
@@ -95,7 +96,9 @@ pymdown-extensions==10.7.1
     # via mkdocs-material
     # via mkdocstrings
 pytest==8.0.2
+    # via pytest-asyncio
     # via pytest-cov
+pytest-asyncio==0.23.5.post1
 pytest-cov==4.1.0
 python-dateutil==2.9.0.post0
     # via ghp-import
@@ -109,6 +112,7 @@ regex==2023.12.25
     # via mkdocs-material
 requests==2.31.0
     # via mkdocs-material
+respx==0.20.2
 ruff==0.3.0
 six==1.16.0
     # via python-dateutil

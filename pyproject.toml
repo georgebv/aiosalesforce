@@ -29,13 +29,18 @@ build-backend = "hatchling.build"
 [tool.rye]
 managed = true
 dev-dependencies = [
-    "pytest>=8.0.2",
-    "pytest-cov>=4.1.0",
+    # Linting
     "ruff>=0.3.0",
     "mypy>=1.8.0",
+    # Documentation
     "mkdocs>=1.5.3",
     "mkdocs-material>=9.5.13",
     "mkdocstrings[python]>=0.24.1",
+    # Testing
+    "pytest>=8.0.2",
+    "pytest-asyncio>=0.23.5.post1",
+    "pytest-cov>=4.1.0",
+    "respx>=0.20.2",
 ]
 
 [tool.hatch.version]
@@ -104,6 +109,7 @@ ignore = [
 lines-between-types = 1
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 addopts = "-v --cov=aiosalesforce --cov-report=term --cov-report=xml --cov-report=html"
 testpaths = [
     "tests",
