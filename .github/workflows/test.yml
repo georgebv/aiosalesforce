@@ -28,25 +28,33 @@ jobs:
         run: ~/.rye/shims/rye sync
       - name: Run tests and generate coverage report
         run: ~/.rye/shims/rye run pytest
-      # TODO upload coverage to codecov
-  # TODO Figure out how to run rye on windows
-  # test-windows:
-  #   name: Test on windows
-  #   runs-on: windows-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       python-version: ["3.11", "3.12"]
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Install python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "${{ matrix.python-version }}"
-  #     - name: Install rye
-  #       run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
-  #     - name: Install project and its dependencies
-  #       run: rye sync
-  #     - name: Run tests and generate coverage report
-  #       run: rye run pytest
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: success() && matrix.python-version == '3.12'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          file: ./coverage.xml
+          verbose: true
+  test-windows:
+    name: Test on windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "${{ matrix.python-version }}"
+      # TODO rye doesn't work on windows so everything is hardcoded
+      - name: Install project and its dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx pytest pytest-asyncio pytest-cov respx time-machine
+          pip install -e .
+      - name: Run tests
+        run: pytest
