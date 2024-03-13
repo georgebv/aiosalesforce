@@ -56,4 +56,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install httpx pytest pytest-asyncio pytest-cov respx time-machine
       - name: Run tests
-        run: rye run pytest
+        run: pytest
