@@ -52,8 +52,8 @@ jobs:
           python-version: "${{ matrix.python-version }}"
       - name: Install rye
         run: |
-          curl -s https://github.com/astral-sh/rye/releases/latest/download/rye-x86_64-windows.exe -o rye-x86_64-windows.exe
-          .\rye-x86_64-windows.exe --yes
+          curl -s https://github.com/astral-sh/rye/releases/latest/download/rye-x86-windows.exe -o rye-x86-windows.exe
+          .\rye-x86-windows.exe --yes
       - name: Install project and its dependencies
         run: \%USERPROFILE%\.rye\shims\rye sync
       - name: Run tests and generate coverage report
