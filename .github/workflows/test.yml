@@ -51,10 +51,8 @@ jobs:
         with:
           python-version: "${{ matrix.python-version }}"
       - name: Install rye
-        run: |
-          curl -s https://github.com/astral-sh/rye/releases/latest/download/rye-x86-windows.exe -o rye-x86-windows.exe
-          .\rye-x86-windows.exe --yes
+        uses: sksat/setup-rye
       - name: Install project and its dependencies
-        run: \%USERPROFILE%\.rye\shims\rye sync
+        run: rye sync
       - name: Run tests and generate coverage report
-        run: \%USERPROFILE%\.rye\shims\rye run pytest
+        run: rye run pytest
