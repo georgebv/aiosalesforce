@@ -36,24 +36,25 @@ jobs:
           fail_ci_if_error: true
           file: ./coverage.xml
           verbose: true
-  # TODO Figure out how to run rye on windows
-  # test-windows:
-  #   name: Test on windows
-  #   runs-on: windows-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       python-version: ["3.11", "3.12"]
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Install python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "${{ matrix.python-version }}"
-  #     - name: Install rye
-  #       run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
-  #     - name: Install project and its dependencies
-  #       run: rye sync
-  #     - name: Run tests and generate coverage report
-  #       run: rye run pytest
+  test-windows:
+    name: Test on windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: Install rye
+        run: |
+          curl -s https://github.com/astral-sh/rye/releases/latest/download/rye-x86_64-windows.exe -o rye-x86_64-windows.exe
+          .\rye-x86_64-windows.exe --yes
+      - name: Install project and its dependencies
+        run: \%USERPROFILE%\.rye\shims\rye sync
+      - name: Run tests and generate coverage report
+        run: \%USERPROFILE%\.rye\shims\rye run pytest
