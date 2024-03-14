@@ -29,6 +29,10 @@ class SalesforceError(Exception):
         self.error_message = error_message
 
 
+class MoreThanOneRecordError(SalesforceError):
+    """Raised when more than one record is found by external ID."""
+
+
 class AuthenticationError(SalesforceError):
     """Raised when authentication fails."""
 
@@ -75,6 +79,16 @@ def raise_salesforce_error(response: Response) -> NoReturn:
 
     exc_class: type[SalesforceError]
     match (response.status_code, error_code):
+        case (300, _):
+            exc_class = MoreThanOneRecordError
+            if error_code is None:
+                error_message = "\n".join(
+                    [
+                        "More than one record found for external ID.",
+                        f"{response.url}",
+                        *[f"  {record}" for record in json_loads(response.content)],
+                    ]
+                )
         case (_, "REQUEST_LIMIT_EXCEEDED"):
             exc_class = RequestLimitExceededError
         case (403, _):

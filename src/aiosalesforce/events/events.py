@@ -22,8 +22,6 @@ class ResponseMixin:
     def __api_usage(self) -> tuple[int, int] | tuple[None, None]:
         if self.response is None:
             return (None, None)
-        if "application/json" not in self.response.headers.get("content-type", None):
-            return (None, None)
         try:
             match_ = re.fullmatch(
                 r"^api-usage=(\d+)/(\d+)$",
