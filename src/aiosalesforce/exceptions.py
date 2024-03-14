@@ -2,6 +2,8 @@ from typing import NoReturn
 
 from httpx import Response
 
+from aiosalesforce.utils import json_loads
+
 
 class SalesforceWarning(Warning):
     """Base class for all Salesforce warnings."""
@@ -64,7 +66,7 @@ def raise_salesforce_error(response: Response) -> NoReturn:
 
     """
     try:
-        response_json = response.json()
+        response_json = json_loads(response.content)
         error_code = response_json[0]["errorCode"]
         error_message = response_json[0]["message"]
     except Exception:

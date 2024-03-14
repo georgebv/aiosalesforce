@@ -78,6 +78,8 @@ mkdocstrings-python==1.8.0
 mypy==1.8.0
 mypy-extensions==1.0.0
     # via mypy
+orjson==3.9.15
+    # via aiosalesforce
 packaging==23.2
     # via mkdocs
     # via pytest

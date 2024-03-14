@@ -1,8 +1,9 @@
-import json
 import logging
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from aiosalesforce.utils import json_dumps, json_loads
 
 if TYPE_CHECKING:
     from .client import Salesforce
@@ -47,7 +48,7 @@ class SobjectClient:
         self,
         sobject: str,
         /,
-        data: dict | str | bytes,
+        data: dict | str | bytes | bytearray,
     ) -> str:
         """
         Create a new record.
@@ -57,8 +58,9 @@ class SobjectClient:
         sobject : str
             Salesforce object name.
             E.g. "Account", "Contact", etc.
-        data : dict | str | bytes
+        data : dict | str | bytes | bytearray
             Data to create the record with.
+            Either a dict or a JSON string/bytes representing a dict.
 
         Returns
         -------
@@ -69,9 +71,10 @@ class SobjectClient:
         response = await self.salesforce_client.request(
             "POST",
             f"{self.base_url}/{sobject}",
-            json=data,
+            content=json_dumps(data),
+            headers={"Content-Type": "application/json"},
         )
-        return response.json()["id"]
+        return json_loads(response.content)["id"]
 
     async def get(
         self,
@@ -112,14 +115,14 @@ class SobjectClient:
             params["fields"] = ",".join(fields)
 
         response = await self.salesforce_client.request("GET", url, params=params)
-        return response.json()
+        return json_loads(response.content)
 
     async def update(
         self,
         sobject: str,
         id_: str,
         /,
-        data: dict | str | bytes,
+        data: dict | str | bytes | bytearray,
     ) -> None:
         """
         Update record by ID.
@@ -131,14 +134,16 @@ class SobjectClient:
             E.g. "Account", "Contact", etc.
         id_ : str
             Salesforce record ID.
-        data : dict | str | bytes
+        data : dict | str | bytes | bytearray
             Data to update the record with.
+            Either a dict or a JSON string/bytes representing a dict.
 
         """
         await self.salesforce_client.request(
             "PATCH",
             f"{self.base_url}/{sobject}/{id_}",
-            json=data,
+            content=json_dumps(data),
+            headers={"Content-Type": "application/json"},
         )
 
     async def delete(
@@ -175,7 +180,8 @@ class SobjectClient:
         id_: str,
         external_id_field: str,
         /,
-        data: dict | str | bytes,
+        data: dict | str | bytes | bytearray,
+        validate: bool = True,
     ) -> UpsertResponse:
         """
         Upsert (update if exists, create if not) record by external ID.
@@ -189,8 +195,16 @@ class SobjectClient:
             Salesforce record external ID.
         external_id_field : str
             External ID field name.
-        data : dict | str | bytes
+        data : dict | str | bytes | bytearray
             Data to upsert the record with.
+            Either a dict or a JSON string/bytes representing a dict.
+        validate : bool, optional
+            If True, validates the request and removes the external ID field
+            from the data if it's present. By default True.
+            The reason for this is that the Salesforce does not allow
+            payload to contain an external ID field when upserting on it.
+            Set this to False if you know you data is correct and
+            you want to improve performance.
 
         Returns
         -------
@@ -198,26 +212,32 @@ class SobjectClient:
             Dataclass with 'id' and 'created' fields.
 
         """
-        if isinstance(data, dict):
-            data.pop(external_id_field, None)
-        elif (
-            external_id_field in data
-            if isinstance(data, str)
-            else external_id_field in data.decode("utf-8")
-        ):
-            data = json.loads(data)
+        if validate:
+            if isinstance(data, (str, bytes, bytearray)):
+                data = json_loads(data)
             if not isinstance(data, dict):
                 raise TypeError(
-                    "data must be a dict or a JSON string representing a dict"
+                    f"data must be a dict, str, bytes, or bytearray, "
+                    f"got {type(data).__name__}"
                 )
-            data.pop(external_id_field, None)
+            try:
+                if data[external_id_field] != id_:
+                    raise ValueError(
+                        f"External ID field '{external_id_field}' in data "
+                        f"{data[external_id_field]} does not match "
+                        f"the provided external id {id_}"
+                    )
+                data.pop(external_id_field)
+            except KeyError:
+                pass
 
         response = await self.salesforce_client.request(
             "PATCH",
             f"{self.base_url}/{sobject}/{external_id_field}/{id_}",
-            json=data,
+            content=json_dumps(data),
+            headers={"Content-Type": "application/json"},
         )
-        response_json = response.json()
+        response_json = json_loads(response.content)
         return UpsertResponse(
             id=response_json["id"],
             created=response_json["created"],

@@ -3,6 +3,7 @@ from httpx import AsyncClient
 from aiosalesforce.auth.base import Auth
 from aiosalesforce.events import EventBus, RestApiCallConsumptionEvent
 from aiosalesforce.exceptions import AuthenticationError
+from aiosalesforce.utils import json_loads
 
 
 class ClientCredentialsFlow(Auth):
@@ -45,8 +46,9 @@ class ClientCredentialsFlow(Auth):
         )
         if not response.is_success:
             try:
-                error_code = response.json()["error"]
-                error_message = response.json()["error_description"]
+                response_json = json_loads(response.content)
+                error_code = response_json["error"]
+                error_message = response_json["error_description"]
             except Exception:  # pragma: no cover
                 error_code = None
                 error_message = response.text
@@ -56,4 +58,4 @@ class ClientCredentialsFlow(Auth):
                 error_code=error_code,
                 error_message=error_message,
             )
-        return response.json()["access_token"]
+        return json_loads(response.content)["access_token"]

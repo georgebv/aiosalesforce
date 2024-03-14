@@ -22,6 +22,7 @@ from aiosalesforce.events import (
 from aiosalesforce.exceptions import SalesforceWarning, raise_salesforce_error
 from aiosalesforce.retries import POLICY_DEFAULT, RetryPolicy
 from aiosalesforce.sobject import SobjectClient
+from aiosalesforce.utils import json_loads
 
 logger = logging.getLogger(__name__)
 
@@ -215,7 +216,7 @@ class Salesforce:
                 )
             else:
                 response = await self.request("GET", f"{self.base_url}{next_url}")
-            response_json: dict = response.json()
+            response_json: dict = json_loads(response.content)
             for record in response_json["records"]:
                 yield record
             next_url = response_json.get("nextRecordsUrl", None)
