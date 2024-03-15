@@ -10,6 +10,7 @@ __all__ = [
     "ExceptionRule",
     "ResponseRule",
     "RetryPolicy",
+    "format_soql",
 ]
 
 from .client import Salesforce
@@ -25,3 +26,4 @@ from .retries import (
     ResponseRule,
     RetryPolicy,
 )
+from .utils import format_soql
