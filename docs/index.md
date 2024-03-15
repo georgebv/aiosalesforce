@@ -8,10 +8,10 @@ hide:
 </style>
 
 <p align="center" style="font-size:40px; margin:0px 10px 0px 10px">
-    <em>aiosalesforce</em>
+    <em>⚡ aiosalesforce ⚡</em>
 </p>
 <p align="center">
-    <em>Python client for the Salesforce REST API</em>
+    <em>Asynchronous Python client for Salesforce APIs</em>
 </p>
 <p align="center">
 <a href="https://github.com/georgebv/aiosalesforce/actions/workflows/test.yml" target="_blank">
@@ -27,21 +27,20 @@ hide:
 
 ---
 
-## Features
-
-`aiosalesforce` is a modern, production-ready Python client for the Salesforce REST API.
+`aiosalesforce` is a modern, production-ready Python client for Salesforce APIs.
 It is built on top of the `httpx` library and provides a simple and intuitive API
-for interacting with Salesforce's REST API.
+for interacting with Salesforce's APIs (REST, Bulk, etc.).
 
-- **Fast:** designed from the ground up to be fully asynchronous
-- **Fully typed:** every part of the library is fully typed and annotated
-- **Intuitive:** API follows naming conventions of the Salesforce REST API while
-  staying idiomatic to Python
-- **Reliable:** flexible and robust retrying configuration
+- **Fast:** designed from the ground up to be fully asynchronous :rocket:
+- **Fully typed:** every part of the library is fully typed and annotated :label:
+- **Reliable:** flexible and robust retrying configuration :gear:
+- **Intuitive:** API follows naming conventions of Salesforce's APIs while
+  staying idiomatic to Python :snake:
 - **Salesforce first:** built with years of experience working with the Salesforce API
   it is configured to work out of the box and incorporates best practices and
-  latest Salesforce API features
+  latest Salesforce API features :cloud:
 - **Track your API usage:** built-in support for tracking Salesforce API usage
+  :chart_with_upwards_trend:
 
 ---
 
@@ -59,17 +58,119 @@ for interacting with Salesforce's REST API.
 pip install aiosalesforce
 ```
 
-## Quickstart
+## Demo
 
-Example below shows how to:
+Follow the steps below to create a simple script that authenticates against Salesforce
+and performs basic operations such as creating a record, reading a record, and executing
+a SOQL query.
 
-- Authenticate against Salesforce using the SOAP login method
-- Create a Salesforce client
-- Create a new Contact
-- Read a Contact by ID
-- Execute a SOQL query
+### Authenticate
 
-```python
+First, we need to authenticate against Salesforce. For this example,
+we will use the `SoapLogin` authentication method.
+
+```python linenums="1"
+import asyncio
+
+from aiosalesforce import Salesforce, SoapLogin
+from httpx import AsyncClient
+
+auth = SoapLogin(
+    username="your-username",
+    password="your-password",
+    security_token="your-security-token",
+)
+```
+
+### Create Salesforce client
+
+Next, we create a new Salesforce client using the `Salesforce` class. Notice
+two additional parameters:
+
+- `client` - an instance of `httpx.AsyncClient` used to make HTTP requests
+- `base_url` - the base URL of your Salesforce instance
+
+Since we are writing an asynchronous application, we need to wrap everything
+in an `async` function. Subsequent sections are written as a continuation of
+the `main` function.
+
+```python linenums="11"
+async def main():
+    async with AsyncClient() as client:
+        salesforce = Salesforce(
+            client,
+            base_url="https://your-instance.my.salesforce.com",
+            auth=auth,
+        )
+```
+
+### Create a record
+
+Let's create a new Contact in Salesforce. To do this, we will use the `create` method
+of the `sobject` api:
+
+```python linenums="18"
+contact_id = await salesforce.sobject.create(
+    "Contact",
+    {
+        "FirstName": "John",
+        "LastName": "Doe",
+        "Email": "john.doe@example.com",
+    },
+)
+print(f"Created Contact with ID: {contact_id}")
+```
+
+This will output something like:
+
+```shell
+Created Contact with ID: 0035e00000Bv2tPAAR
+```
+
+### Read a record
+
+To read a record by ID, we will use the `get` method of the `sobject` api:
+
+```python linenums="27"
+contact = await salesforce.sobject.get("Contact", contact_id)
+print(contact)
+```
+
+This will return a dictionary with the Contact details (truncated for brevity):
+
+```shell
+{
+    "Id": "0035e00000Bv2tPAAR",
+    "FirstName": "John",
+    "LastName": "Doe",
+    "Email": "john.doe@example.com",
+    ...
+}
+```
+
+### Execute a SOQL query
+
+Finally, let's execute a SOQL query to retrieve all Contacts:
+
+```python linenums="29"
+async for record in salesforce.query("SELECT Id, Name FROM Contact"):
+    print(record)
+```
+
+This will create an asynchronous generator yielding records as a dictionaries:
+
+```shell
+{"Id": "0035e00000Bv2tPAAR", "Name": "John Doe"}
+{"Id": "0035e00000Bv2tPAAQ", "Name": "Jane Doe"}
+{"Id": "0035e00000Bv2tPAAP", "Name": "Alice Smith"}
+...
+```
+
+### Putting it all together
+
+Putting everything you learned above together, a simple script may look like this:
+
+```python linenums="1"
 import asyncio
 
 from aiosalesforce import Salesforce
@@ -115,3 +216,7 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
+## License
+
+This project is licensed under the terms of the MIT license.

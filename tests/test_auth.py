@@ -10,7 +10,7 @@ from aiosalesforce.events import EventBus
 from aiosalesforce.exceptions import AuthenticationError
 
 
-class TestAuth:
+class TestSoapLogin:
     async def test_soap_login(
         self,
         config: dict[str, str],
@@ -85,6 +85,8 @@ class TestAuth:
                 event_bus=EventBus(),
             )
 
+
+class TestClientCredentialsFlow:
     async def test_client_credentials_flow(
         self,
         config: dict[str, str],

@@ -1,5 +1,35 @@
-Before you can make requests to the Salesforce API, you need to authenticate.
-In `aiosalesforce` authentication is a dependency you provide to the client.
+## Overview
+
+Before you can make requests to the Salesforce API, you need to authenticate
+In `aiosalesforce` authentication is a dependency you provide
+to the `Salesforce` client. The typical usage pattern looks like this
+(using the `SoapLogin` authentication method as an example):
+
+```python
+import asyncio
+
+from aiosalesforce import Salesforce, SoapLogin
+from httpx import AsyncClient
+
+auth = SoapLogin(
+    username="username",
+    password="password",
+    security_token="security-token",
+)
+
+
+async def main():
+    async with AsyncClient() as client:
+        salesforce = Salesforce(
+            client=client,
+            base_url="https://your-instance.my.salesforce.com",
+            auth=auth,
+        )
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
 
 !!! tip "Best Practice"
 

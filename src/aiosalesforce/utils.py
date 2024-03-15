@@ -191,7 +191,7 @@ def format_soql(query: LiteralString, *args, **kwargs) -> str:
     >>>     "SELECT Id FROM Record WHERE Description LIKE '% fails {pattern:like}'",
     >>>     pattern="50% of the time",
     >>> )
-    "SELECT Id FROM Record WHERE Description LIKE '% fails 50\% of the time'"
+    "SELECT Id FROM Record WHERE Description LIKE '% fails 50\\% of the time'"
 
     Parameters
     ----------

@@ -201,7 +201,7 @@ class SobjectClient:
         validate : bool, optional
             If True, validates the request and removes the external ID field
             from the data if it's present. By default True.
-            The reason for this is that the Salesforce does not allow
+            The reason for this is that Salesforce does not allow
             payload to contain an external ID field when upserting on it.
             Set this to False if you know you data is correct and
             you want to improve performance.

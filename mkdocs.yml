@@ -9,6 +9,7 @@ copyright: Copyright &copy; 2024 George Bocharov
 nav:
   - Get Started: index.md
   - Documentation:
+      - Introduction: documentation/introduction.md
       - Authentication: documentation/authentication.md
   - API Reference:
       - Salesforce Client: api-reference/salesforce-client.md
@@ -21,12 +22,14 @@ theme:
   name: material
   features:
     - navigation.tabs
+    - content.tabs.link
     - navigation.top
     - navigation.prune
     - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
     - search.suggest
+    - content.code.copy
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -44,6 +47,7 @@ theme:
         name: Switch to light mode
   icon:
     repo: fontawesome/brands/github
+    logo: fontawesome/solid/cloud-bolt
 
 plugins:
   - search
@@ -69,6 +73,8 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
   - tables
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
