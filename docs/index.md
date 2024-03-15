@@ -50,7 +50,8 @@ for interacting with Salesforce's REST API.
 `aiosalesforce` depends on:
 
 - Python 3.11+
-- [httpx](https://www.python-httpx.org/)
+- [httpx](https://github.com/encode/httpx)
+- [orjson](https://github.com/ijl/orjson)
 
 ## Installation
 

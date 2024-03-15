@@ -7,10 +7,15 @@ site_author: George Bocharov
 copyright: Copyright &copy; 2024 George Bocharov
 
 nav:
-  - Home: index.md
+  - Get Started: index.md
+  - Documentation:
+      - Authentication: documentation/authentication.md
   - API Reference:
-      - Salesforce: api-reference/salesforce-client.md
-      - Salesforce.sobject: api-reference/sobject-client.md
+      - Salesforce Client: api-reference/salesforce-client.md
+      - Sobject Client: api-reference/sobject-client.md
+      - Events: api-reference/events.md
+      - Retries: api-reference/retries.md
+      - Exceptions: api-reference/exceptions.md
 
 theme:
   name: material
@@ -71,3 +76,9 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra_css:
+  - css/extra.css
