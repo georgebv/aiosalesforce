@@ -16,6 +16,7 @@ make requests to the Salesforce APIs.
 import asyncio
 
 from aiosalesforce import Salesforce, SoapLogin
+from httpx import AsyncClient
 
 auth = SoapLogin(
     username="username",
@@ -38,18 +39,17 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-Since `aiosalesforce` is an asynchronous library, you need to define your functions
-using `async def` and use the `await` keyword when calling asynchronous methods.
-In subsequent sections of this documentation we often omit the definition of the
-asynchronous function and assume that everything is written inside one.
+!!! note "Note"
 
-!!! warning "Warning"
-
-    Don't forget to use the `await` keyword when calling asynchronous methods.
+    Since `aiosalesforce` is an asynchronous library, you need to define your functions
+    using `async def` and use the `await` keyword when calling asynchronous methods.
+    In subsequent sections of this documentation the definition of the asynchronous
+    function is often ommited for brevity and it is assumed that everything
+    is written inside one.
 
 ## Recommended reading
 
-Before you start using `aiosalesforce`, you should familiarize yourself with the
+As you are using `aiosalesforce`, you should familiarize yourself with the
 Python's [`asyncio` library](https://docs.python.org/3/library/asyncio.html).
 
 Relevant Salesforce API documentation:

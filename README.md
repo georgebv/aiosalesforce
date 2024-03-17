@@ -1,8 +1,8 @@
 <p align="center" style="font-size:40px; margin:0px 10px 0px 10px">
-    <em>aiosalesforce</em>
+    <em>⚡ aiosalesforce ⚡</em>
 </p>
 <p align="center">
-    <em>Python client for the Salesforce REST API</em>
+    <em>Asynchronous Python client for Salesforce APIs</em>
 </p>
 <p align="center">
 <a href="https://github.com/georgebv/aiosalesforce/actions/workflows/test.yml" target="_blank">
@@ -16,8 +16,6 @@
 </a>
 </p>
 
-# About
-
 **Documentation:** https://georgebv.github.io/aiosalesforce
 
 **License:** [MIT](https://opensource.org/licenses/MIT)
@@ -26,26 +24,30 @@
 or [create an issue](https://github.com/georgebv/aiosalesforce/issues/new/choose),
 any input is appreciated and would help develop the project
 
-`aiosalesforce` is a modern, production-ready Python client for the Salesforce REST API.
-It is built on top of the `httpx` library and provides a simple and intuitive API
-for interacting with Salesforce's REST API.
+# About
 
-- **Fast:** designed from the ground up to be fully asynchronous
-- **Fully typed:** every part of the library is fully typed and annotated
-- **Intuitive:** API follows naming conventions of the Salesforce REST API while
-  staying idiomatic to Python
-- **Reliable:** flexible and robust retrying configuration
+`aiosalesforce` is a modern, production-ready Python client for Salesforce APIs.
+It is built on top of the `httpx` library and provides a simple and intuitive API
+for interacting with Salesforce's APIs (REST, Bulk, etc.).
+
+- **Fast:** designed from the ground up to be fully asynchronous :rocket:
+- **Fully typed:** every part of the library is fully typed and annotated :label:
+- **Reliable:** flexible and robust retrying configuration :gear:
+- **Intuitive:** API follows naming conventions of Salesforce's APIs while
+  staying idiomatic to Python :snake:
 - **Salesforce first:** built with years of experience working with the Salesforce API
   it is configured to work out of the box and incorporates best practices and
-  latest Salesforce API features
+  latest Salesforce API features :cloud:
 - **Track your API usage:** built-in support for tracking Salesforce API usage
+  :chart_with_upwards_trend:
 
 ## Requirements
 
 `aiosalesforce` depends on:
 
 - Python 3.11+
-- [httpx](https://www.python-httpx.org/)
+- [httpx](https://github.com/encode/httpx)
+- [orjson](https://github.com/ijl/orjson)
 
 ## Installation
 
@@ -53,7 +55,7 @@ for interacting with Salesforce's REST API.
 pip install aiosalesforce
 ```
 
-## Quickstart
+# Demo
 
 Example below shows how to:
 

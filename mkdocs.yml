@@ -7,10 +7,11 @@ site_author: George Bocharov
 copyright: Copyright &copy; 2024 George Bocharov
 
 nav:
-  - Get Started: index.md
+  - Getting Started: index.md
   - Documentation:
       - Introduction: documentation/introduction.md
       - Authentication: documentation/authentication.md
+      - Salesforce client: documentation/client.md
   - API Reference:
       - Salesforce Client: api-reference/salesforce-client.md
       - Sobject Client: api-reference/sobject-client.md

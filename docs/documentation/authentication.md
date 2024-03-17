@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
 !!! warning Warning
 
-    Keep your credentials safe and never hardcode them in your code.
+    Keep your credentials safe and never hardcode them in your application.
     Use third-party libraries to acquire credentials from environment variables,
     configuration files, or secret management services during runtime.
 

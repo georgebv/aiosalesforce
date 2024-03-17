@@ -85,6 +85,13 @@ class Salesforce:
     ) -> None:
         self.httpx_client = httpx_client
         self.auth = auth
+
+        # Validate version
+        if not re.fullmatch(r"\d+\.0", version):
+            raise ValueError(
+                f"Invalid Salesforce API version: '{version}'. "
+                f"A valid version would look like '60.0'."
+            )
         self.version = version
 
         # Validate url
