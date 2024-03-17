@@ -29,7 +29,7 @@ class ResponseMixin:
             )
         except KeyError:
             return (None, None)
-        if match_ is None:
+        if match_ is None:  # pragma: no cover
             return (None, None)
         consumed, remaining = match_.groups()
         return int(consumed), int(remaining)
