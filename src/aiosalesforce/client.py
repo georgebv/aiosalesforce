@@ -58,6 +58,9 @@ class Salesforce:
             Server errors (5xx)
             Row lock errors
             Rate limit errors
+    concurrency_limit : int, optional
+        Maximum number of simultaneous requests to Salesforce.
+        The default is 100.
 
     """
 
@@ -68,6 +71,7 @@ class Salesforce:
     version: str
     event_bus: EventBus
     retry_policy: RetryPolicy
+    __semaphore: asyncio.Semaphore
 
     def __init__(
         self,
@@ -77,6 +81,7 @@ class Salesforce:
         version: str = "60.0",
         event_hooks: list[Callable[[Event], Awaitable[None] | None]] | None = None,
         retry_policy: RetryPolicy = POLICY_DEFAULT,
+        concurrency_limit: int = 100,
     ) -> None:
         self.httpx_client = httpx_client
         self.auth = auth
@@ -103,6 +108,7 @@ class Salesforce:
 
         self.event_bus = EventBus(event_hooks)
         self.retry_policy = retry_policy
+        self.__semaphore = asyncio.Semaphore(concurrency_limit)
 
     @wraps(httpx.AsyncClient.request)
     async def request(self, *args, **kwargs) -> httpx.Response:
@@ -133,7 +139,8 @@ class Salesforce:
         refreshed: bool = False
         for attempt in itertools.count():
             try:
-                response = await self.httpx_client.send(request)
+                async with self.__semaphore:
+                    response = await self.httpx_client.send(request)
             except Exception as exc:
                 if await retry_context.should_retry(exc):
                     await asyncio.gather(
