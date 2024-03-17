@@ -63,7 +63,9 @@ class RetryContext:
         elif isinstance(value, Exception):
             condition = await self.__evaluate_exception_rules(value)
         else:
-            raise TypeError("Value must be a Response or an Exception")
+            raise TypeError(  # pragma: no cover
+                "Value must be a Response or an Exception"
+            )
         if condition:
             self.retry_count["total"] += 1
         return condition
