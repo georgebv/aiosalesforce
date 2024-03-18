@@ -44,19 +44,21 @@ class TestRules:
         assert not await rule.should_retry(exception_2)  # type: ignore
         func.assert_called_once()
 
-    async def test_exception_rule_base_not_allowed(self):
-        with pytest.raises(
-            ValueError,
-            match="Retrying built-in Exception is not allowed.",
-        ):
-            ExceptionRule(Exception)
-
-    async def test_exception_rule_salesforce_not_allowed(self):
-        with pytest.raises(
-            ValueError,
-            match="aiosalesforce exceptions cannot be retried.+",
-        ):
-            ExceptionRule(SalesforceError)
+    @pytest.mark.parametrize(
+        "exception, pattern",
+        [
+            (Exception, "Retrying built-in Exception is not allowed."),
+            (SalesforceError, "aiosalesforce exceptions cannot be retried.+"),
+        ],
+        ids=["base python exception", "base aiosalesforce exception"],
+    )
+    async def test_exception_rule_illegal_exception(
+        self,
+        exception: type[Exception],
+        pattern: str,
+    ):
+        with pytest.raises(ValueError, match=pattern):
+            ExceptionRule(exception)
 
 
 class TestRetryPolicy:
@@ -76,14 +78,9 @@ class TestRetryPolicy:
             await policy.sleep(0)
             new_sleep.assert_awaited_once_with(1)
 
-            await policy.sleep(1)
-            new_sleep.assert_awaited_with(2)
-
-            await policy.sleep(3)
-            new_sleep.assert_awaited_with(8)
-
-            await policy.sleep(100)
-            new_sleep.assert_awaited_with(10)
+            for attempt in range(1, 10):
+                await policy.sleep(attempt)
+                new_sleep.assert_awaited_with(min(2**attempt, 10))
 
     async def test_without_rules(self):
         policy = RetryPolicy()
