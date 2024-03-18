@@ -2,7 +2,48 @@ import datetime
 
 import pytest
 
-from aiosalesforce.utils import _sanitize_soql_query_parameter, format_soql
+from aiosalesforce.utils import (
+    _sanitize_soql_query_parameter,
+    format_soql,
+    json_dumps,
+    json_loads,
+)
+
+
+class TestJson:
+    @pytest.mark.parametrize(
+        "data, expected",
+        [
+            ('{"a":"b","c":1}', b'{"a":"b","c":1}'),
+            (b'{"a":"b","c":1}', b'{"a":"b","c":1}'),
+            (bytearray(b'{"a":"b","c":1}'), b'{"a":"b","c":1}'),
+            ({"a": "b", "c": 1}, b'{"a":"b","c":1}'),
+        ],
+        ids=[
+            "str",
+            "bytest",
+            "bytearray",
+            "dict",
+        ],
+    )
+    def test_dumps(self, data, expected):
+        assert json_dumps(data) == expected
+
+    @pytest.mark.parametrize(
+        "data, expected",
+        [
+            ('{"a":"b","c":1}', {"a": "b", "c": 1}),
+            (b'{"a":"b","c":1}', {"a": "b", "c": 1}),
+            (bytearray(b'{"a":"b","c":1}'), {"a": "b", "c": 1}),
+        ],
+        ids=[
+            "str",
+            "bytes",
+            "bytearray",
+        ],
+    )
+    def test_loads(self, data, expected):
+        assert json_loads(data) == expected
 
 
 class TestSoqlFormatting:
