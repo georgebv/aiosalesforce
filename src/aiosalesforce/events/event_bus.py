@@ -39,8 +39,7 @@ class EventBus:
         if inspect.iscoroutinefunction(callback):
             await callback(event)
         else:
-            loop = asyncio.get_running_loop()
-            await loop.run_in_executor(None, callback, event)
+            await asyncio.to_thread(callback, event)
 
     async def publish_event(self, event: Event) -> None:
         """Publish an event and dispatch it to all subscribed callbacks."""

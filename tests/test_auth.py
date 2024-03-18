@@ -1,13 +1,123 @@
+import asyncio
 import time
+
+from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
 import respx
 import time_machine
 
-from aiosalesforce.auth import ClientCredentialsFlow, SoapLogin
+from aiosalesforce.auth import Auth, ClientCredentialsFlow, SoapLogin
 from aiosalesforce.events import EventBus
 from aiosalesforce.exceptions import AuthenticationError
+
+
+class TestBaseAuth:
+    async def test_get_access_token(self):
+        """Token is acquired only once when called multiple times."""
+        func = AsyncMock()
+        func.return_value = "test-token"
+        httpx_client = MagicMock()
+        event_bus = EventBus()
+        auth = type("CustomAuth", (Auth,), {"_acquire_new_access_token": func})()
+        tokens = await asyncio.gather(
+            *[
+                auth.get_access_token(
+                    client=httpx_client,
+                    base_url="https://example.com",
+                    version="60.0",
+                    event_bus=event_bus,
+                )
+                for _ in range(10)
+            ],
+        )
+        assert len(tokens) == 10
+        assert len(set(tokens)) == 1
+        assert tokens[0] == "test-token"
+        func.assert_awaited_once_with(
+            client=httpx_client,
+            base_url="https://example.com",
+            version="60.0",
+            event_bus=event_bus,
+        )
+
+    async def test_refresh_access_token_error(self):
+        auth = type(
+            "CustomAuth",
+            (Auth,),
+            {"_acquire_new_access_token": lambda: "test"},
+        )()
+        with pytest.raises(RuntimeError, match="No access token to refresh"):
+            await auth.refresh_access_token(
+                client=MagicMock(),
+                base_url="https://example.com",
+                version="60.0",
+                event_bus=EventBus(),
+            )
+
+    async def test_refresh_access_token_concurrent(self):
+        """Token is refreshed only once when called multiple times concurrently."""
+        get_func = AsyncMock()
+        get_func.return_value = "test-token-before"
+        refresh_func = AsyncMock()
+        refresh_func.return_value = "test-token-after"
+        httpx_client = MagicMock()
+        event_bus = EventBus()
+        auth = type(
+            "CustomAuth",
+            (Auth,),
+            {
+                "_acquire_new_access_token": get_func,
+                "_refresh_access_token": refresh_func,
+            },
+        )()
+
+        # Get the token before refreshing it
+        token = await auth.get_access_token(
+            client=httpx_client,
+            base_url="https://example.com",
+            version="60.0",
+            event_bus=event_bus,
+        )
+        assert token == "test-token-before"  # noqa: S105
+        get_func.assert_awaited_once_with(
+            client=httpx_client,
+            base_url="https://example.com",
+            version="60.0",
+            event_bus=event_bus,
+        )
+
+        # To ensure all refreshes are concurrent lock is held until
+        # all of the tasks are waiting for it
+        tasks: list[asyncio.Task[str]] = []
+        async with asyncio.TaskGroup() as tg:
+            await auth._Auth__lock.acquire()
+            for _ in range(10):
+                tasks.append(
+                    tg.create_task(
+                        auth.refresh_access_token(
+                            client=httpx_client,
+                            base_url="https://example.com",
+                            version="60.0",
+                            event_bus=event_bus,
+                        ),
+                    )
+                )
+            # Yield control to the event loop to allow the tasks to start
+            # and reach a point where they are waiting for the lock
+            await asyncio.sleep(0)
+            auth._Auth__lock.release()
+        tokens = [task.result() for task in tasks]
+        assert len(tokens) == 10
+        assert len(set(tokens)) == 1
+        assert tokens[0] == "test-token-after"
+        refresh_func.assert_awaited_once_with(
+            client=httpx_client,
+            base_url="https://example.com",
+            version="60.0",
+            event_bus=event_bus,
+        )
 
 
 class TestSoapLogin:

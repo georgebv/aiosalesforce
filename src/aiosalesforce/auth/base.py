@@ -49,15 +49,6 @@ class Auth(ABC):
             Access token
 
         """
-        if self.__access_token is not None:
-            if self.expired:
-                return await self.refresh_access_token(
-                    client=client,
-                    base_url=base_url,
-                    version=version,
-                    event_bus=event_bus,
-                )
-            return self.__access_token
         async with self.__lock:
             if self.__access_token is None:
                 logger.debug(
@@ -66,6 +57,18 @@ class Auth(ABC):
                     base_url,
                 )
                 self.__access_token = await self._acquire_new_access_token(
+                    client=client,
+                    base_url=base_url,
+                    version=version,
+                    event_bus=event_bus,
+                )
+            elif self.expired:
+                logger.debug(
+                    "Token expired, refreshing access token using %s for %s",
+                    self.__class__.__name__,
+                    base_url,
+                )
+                self.__access_token = await self._refresh_access_token(
                     client=client,
                     base_url=base_url,
                     version=version,
@@ -191,7 +194,7 @@ class Auth(ABC):
     @property
     def expired(self) -> bool:
         """True if the access token is expired."""
-        if self.__access_token is None:
+        if self.__access_token is None:  # pragma: no cover
             raise RuntimeError("Cannot check expiration of a non-existent access token")
         # By default, assumes the access token never expires
         # Salesforce client automatically refreshes the token after 401 response

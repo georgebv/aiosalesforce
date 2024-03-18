@@ -39,9 +39,7 @@ class ResponseRule:
         if inspect.iscoroutinefunction(self.func):
             return await self.func(response)
         else:
-            loop = asyncio.get_running_loop()
-            return await loop.run_in_executor(
-                None,
+            return await asyncio.to_thread(
                 self.func,  # type: ignore
                 response,
             )
@@ -94,9 +92,7 @@ class ExceptionRule(Generic[E]):
         if inspect.iscoroutinefunction(self.func):
             return await self.func(exc)
         else:
-            loop = asyncio.get_running_loop()
-            return await loop.run_in_executor(
-                None,
+            return await asyncio.to_thread(
                 self.func,  # type: ignore
                 exc,
             )
