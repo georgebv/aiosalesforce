@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+import time_machine
 
 from aiosalesforce.exceptions import SalesforceError
 from aiosalesforce.retries import ExceptionRule, ResponseRule, RetryPolicy
@@ -60,12 +61,29 @@ class TestRules:
 
 class TestRetryPolicy:
     async def test_sleep(self):
-        policy = RetryPolicy()
+        policy = RetryPolicy(
+            backoff_base=1,
+            backoff_factor=2,
+            backoff_max=10,
+        )
         new_sleep = AsyncMock()
-        with patch("asyncio.sleep", new_sleep):
+        with (
+            patch("asyncio.sleep", new_sleep),
+            patch("random.uniform", lambda _, b: b),
+        ):
             new_sleep.assert_not_awaited()
+
+            await policy.sleep(0)
+            new_sleep.assert_awaited_once_with(1)
+
             await policy.sleep(1)
-            new_sleep.assert_awaited_once()
+            new_sleep.assert_awaited_with(2)
+
+            await policy.sleep(3)
+            new_sleep.assert_awaited_with(8)
+
+            await policy.sleep(100)
+            new_sleep.assert_awaited_with(10)
 
     async def test_without_rules(self):
         policy = RetryPolicy()
@@ -135,3 +153,18 @@ class TestRetryPolicy:
             assert await context.should_retry(Response(500))
         assert context.retry_count["total"] == 3
         assert not await context.should_retry(Response(500))
+
+    async def test_policy_timeout(self):
+        rule_callback = MagicMock()
+        rule_callback.return_value = True
+        rule = ResponseRule(rule_callback, 10)
+        policy = RetryPolicy([rule], max_retries=10, timeout=10)
+        with time_machine.travel(0, tick=False):
+            context = policy.create_context()
+            assert context.retry_count["total"] == 0
+            with time_machine.travel(1, tick=False):
+                assert await context.should_retry(Response(500))
+                assert context.retry_count["total"] == 1
+            with time_machine.travel(11, tick=False):
+                assert not await context.should_retry(Response(500))
+                assert context.retry_count["total"] == 1
