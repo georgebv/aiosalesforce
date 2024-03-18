@@ -9,8 +9,8 @@ performing the following operations against Salesforce:
 - Bulk data operations
 
 The general pattern for using `aiosalesforce` is to create an authentication
-instance and pass it to the `Salesforce` client. The client is then used to
-make requests to the Salesforce APIs.
+instance and pass it to the [`Salesforce` client](/aiosalesforce/documentation/client).
+The client is then used to make requests to the Salesforce APIs.
 
 ```python
 import asyncio

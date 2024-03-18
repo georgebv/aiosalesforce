@@ -2,7 +2,8 @@
 
 Before you can make requests to the Salesforce API, you need to authenticate
 In `aiosalesforce` authentication is a dependency you provide
-to the `Salesforce` client. The typical usage pattern looks like this
+to the [`Salesforce` client](/aiosalesforce/documentation/client).
+The typical usage pattern looks like this
 (using the `SoapLogin` authentication method as an example):
 
 ```python

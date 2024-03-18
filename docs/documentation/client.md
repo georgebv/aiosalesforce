@@ -58,14 +58,105 @@ salesforce = Salesforce(
 !!! warning "Warning"
 
     Version must be a string in the format of `XX.0` (e.g., `60.0`).
-    Value like `v60.0` is not valid and will result in an error
-    when using the client later.
+    Value like `v60.0` is not valid and will result in an error.
 
 ## Event Hooks
 
-!!! info "WIP"
+When you use the `Salesforce` client, it emits certain events to which you can
+subscribe. This allows you to perform custom actions at different stages of the
+request-response lifecycle. For example, you can log requests and responses, or
+track usage of the Salesforce API within your application.
 
-    :construction: Work in progress
+You subscribe to events by declaring a function or a coroutine that will be
+called when an event is emitted and then providing that function to the client.
+The function will receive an event object as the only argument.
+The event object will contain information about the event.
+
+```python
+async def callback(event):
+    # Do something with the event
+    ...
+```
+
+!!! note "Note"
+
+    When subscribing to events, your function will receive all events emitted by the
+    `Salesforce` client. You are responsible for filtering out events you are
+    not interested in.
+
+!!! warning "Warning"
+
+    Only use `async def` if your callback function is asynchronous. If it contains
+    synchronous network calls, it will slow down the entire application by blocking
+    the event loop. If you need to perform synchronous operations, declare your
+    function as a regular function using `def` - such functions will be run in
+    a separate thread to avoid blocking the event loop.
+
+An example below shows how you can use event hooks to keep track of the number
+of requests made to the Salesforce API.
+
+```python
+from aiosalesforce import RestApiCallConsumptionEvent
+
+
+def track_api_usage(event: RestApiCallConsumptionEvent):
+    match event:
+        case RestApiCallConsumptionEvent():
+            # Do whatever you need to do with the event
+            # For example, write to a metrics service (e.g., AWS CloudWatch)
+            ...
+        case _:
+            # Do nothing for other events
+            pass
+
+salesforce = Salesforce(
+    ...,
+    event_hooks=[track_api_usage],
+)
+```
+
+An alternative way of subscribing to events is to use the `subscribe_callback` method
+of the `event_loop` attribute of the `Salesforce` client:
+
+```python
+salesforce.event_loop.subscribe_callback(track_api_usage)
+```
+
+Similarly, you can unsubscribe a callback by using the `unsubscribe_callback` method:
+
+```python
+salesforce.event_loop.unsubscribe_callback(track_api_usage)
+```
+
+When you subscribe multiple callbacks to the client they will be called concurrently.
+This means that the order in which they are called is not guaranteed. Your callbacks
+can be synchronous, asynchronous, or a mix of both - `aiosalesforce` knows what to do
+in each case.
+
+### Events
+
+All events have the `type` attribute.
+
+| Event                          | `type`                       | When emitted                                                            | Attributes                       |
+| ------------------------------ | ---------------------------- | ----------------------------------------------------------------------- | -------------------------------- |
+| `RequestEvent`                 | `request`                    | Before making a request to the Salesforce API                           | `request`                        |
+| `RetryEvent`                   | `retry`                      | Before request is retried                                               | `request`, `response` (optional) |
+| `ResponseEvent`                | `response`                   | After an OK (status code < 300) response is received                    | `response`                       |
+| `RestApiCallConsumptionEvent`  | `rest_api_call_consumption`  | When a Salesforce API call is consumed (includes unsuccessful requests) | `response`                       |
+| `BulkApiBatchConsumptionEvent` | `bulk_api_batch_consumption` | When a Bulk API (v1 or v2) batch is consumed                            | `response`                       |
+
+All events which have the `response` attribute will contain `consumed` and `remaining`
+attributes. The `consumed` attribute is the number of API calls consumed and the
+`remaining` attribute is the number of API calls remaining in the current
+24-hour period.
+
+### Best Practices
+
+- Use asynchronous functions if you make asynchronous IO operations and synchronous
+  functions if you make synchronous IO operations in your callback.
+- Use the `match` or `if` statement to filter out events you are not interested in.
+- Declare one callback for each operation you want to perform. This will make
+  your code run faster and be easier to understand.
 
 ## Retrying Requests
 
