@@ -4,7 +4,7 @@ Before you can make requests to the Salesforce API, you need to authenticate
 In `aiosalesforce` authentication is a dependency you provide
 to the [`Salesforce` client](/aiosalesforce/documentation/client).
 The typical usage pattern looks like this
-(using the `SoapLogin` authentication method as an example):
+(using the [`SoapLogin`](#soap-login) authentication method as an example):
 
 ```python
 import asyncio
@@ -85,12 +85,15 @@ auth = ClientCredentials(
 
 ## Custom Authentication
 
-You can create a custom authentication class by subclassing the `Auth` class and
-implementing the `_acquire_new_access_token` and
+You can create a custom authentication class by subclassing the
+[`Auth`](/aiosalesforce/api-reference/auth/#aiosalesforce.auth.Auth)
+class and implementing the `_acquire_new_access_token` and
 (optionally) the `_refresh_access_token` methods.
 
 When implementing custom authentication, you are responsible for emitting appropriate
-events using the provided `EventBus` instance.
+events using the provided
+[`EventBus`](/aiosalesforce/api-reference/events/#aiosalesforce.events.EventBus)
+instance.
 
 ```python
 from aiosalesforce.auth import Auth

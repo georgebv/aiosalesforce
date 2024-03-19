@@ -209,7 +209,7 @@ class Salesforce:
         ----------
         query : str
             SOQL query.
-        include_all_records : bool, optional
+        include_all_records : bool, default False
             If True, includes all (active/deleted/archived) records.
 
         Returns

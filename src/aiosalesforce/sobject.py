@@ -97,7 +97,8 @@ class SobjectClient:
         external_id_field : str, optional
             External ID field name, by default None.
         fields : list[str], optional
-            Fields to get for the record, by default None (all fields).
+            Fields to get for the record.
+            By default returns all fields.
 
         Returns
         -------
@@ -164,7 +165,8 @@ class SobjectClient:
         id_ : str
             Salesforce record ID or external ID (if external_id_field is provided).
         external_id_field : str, optional
-            External ID field name, by default None.
+            External ID field name.
+            If not provided, id_ is treated as a record ID.
 
         """
         url = f"{self.base_url}/{sobject}"
@@ -198,7 +200,7 @@ class SobjectClient:
         data : dict | str | bytes | bytearray
             Data to upsert the record with.
             Either a dict or a JSON string/bytes representing a dict.
-        validate : bool, optional
+        validate : bool, default True
             If True, validates the request and removes the external ID field
             from the data if it's present. By default True.
             The reason for this is that Salesforce does not allow

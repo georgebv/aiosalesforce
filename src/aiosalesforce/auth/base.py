@@ -12,6 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class Auth(ABC):
+    """
+    Base class for Salesforce authentication.
+
+    """
+
     def __init__(self) -> None:
         self.__access_token: str | None = None
         self.__lock = asyncio.Lock()

@@ -15,6 +15,15 @@ class SoapLogin(Auth):
 
     https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_calls_login.htm
 
+    Parameters
+    ----------
+    username : str
+        Username.
+    password : str
+        Password.
+    security_token : str
+        Security token.
+
     """
 
     def __init__(

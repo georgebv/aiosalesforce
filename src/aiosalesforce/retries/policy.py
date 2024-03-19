@@ -16,6 +16,20 @@ class RetryCounts(TypedDict):
 
 
 class RetryContext:
+    """
+    Context for retrying a particular request.
+
+    Parameters
+    ----------
+    response_rules : list[ResponseRule]
+        Rules for retrying requests based on their responses.
+    exception_rules : list[ExceptionRule]
+        Rules for retrying requests after an exception.
+    max_retries : int
+        Maximum total number of retries.
+
+    """
+
     __slots__ = (
         "response_rules",
         "exception_rules",
@@ -52,6 +66,20 @@ class RetryContext:
         }
 
     async def should_retry(self, value: Response | Exception) -> bool:
+        """
+        Determine if the request should be retried.
+
+        Parameters
+        ----------
+        value : Response | Exception
+            Response or Exception from the request.
+
+        Returns
+        -------
+        bool
+            True if the request should be retried, False otherwise.
+
+        """
         if (
             self.retry_count["total"] >= self.max_retries
             or time.time() - self.start > self.timeout

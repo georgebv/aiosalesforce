@@ -36,6 +36,20 @@ class ResponseRule:
         self.max_retries = max_retries
 
     async def should_retry(self, response: Response) -> bool:
+        """
+        Determine if the request should be retried.
+
+        Parameters
+        ----------
+        response : Response
+            Response from the request.
+
+        Returns
+        -------
+        bool
+            True if the request should be retried, False otherwise.
+
+        """
         if inspect.iscoroutinefunction(self.func):
             return await self.func(response)
         else:
@@ -87,6 +101,20 @@ class ExceptionRule(Generic[E]):
         self.max_retries = max_retries
 
     async def should_retry(self, exc: E) -> bool:
+        """
+        Determine if the request should be retried.
+
+        Parameters
+        ----------
+        exc : Exception
+            Exception from the request.
+
+        Returns
+        -------
+        bool
+            True if the request should be retried, False otherwise.
+
+        """
         if not isinstance(exc, self.exception_type):
             return False
         if inspect.iscoroutinefunction(self.func):

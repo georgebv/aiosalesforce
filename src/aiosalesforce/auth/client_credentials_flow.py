@@ -12,6 +12,13 @@ class ClientCredentialsFlow(Auth):
 
     https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_client_credentials_flow.htm&type=5
 
+    Parameters
+    ----------
+    client_id : str
+        Client ID.
+    client_secret : str
+        Client secret.
+
     """
 
     def __init__(self, client_id: str, client_secret: str) -> None:

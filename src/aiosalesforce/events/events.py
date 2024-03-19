@@ -8,14 +8,18 @@ from httpx import Request, Response
 
 
 class ResponseMixin:
+    """Mixin class providing properties for events which may have response."""
+
     response: Response | None
 
     @property
     def consumed(self) -> int | None:
+        """Number of API calls consumed in the current 24-hour period."""
         return self.__api_usage[0]
 
     @property
     def remaining(self) -> int | None:
+        """Number of API calls remaining in the current 24-hour period."""
         return self.__api_usage[1]
 
     @cached_property
@@ -37,6 +41,8 @@ class ResponseMixin:
 
 @dataclass
 class Event:
+    """Base class for all events."""
+
     type: Literal[
         "request",
         "response",

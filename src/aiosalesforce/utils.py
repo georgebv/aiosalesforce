@@ -92,7 +92,7 @@ def _sanitize_soql_query_parameter(  # noqa: PLR0911
     ----------
     value : str
         Value to be sanitized.
-    like : bool, optional
+    like : bool, default True
         Whether the string is to be used in a LIKE clause, by default False.
         When True, % and _ characters are escaped and
         the returned string is not enclosed in single quotes.

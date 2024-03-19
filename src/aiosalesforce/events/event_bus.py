@@ -27,9 +27,27 @@ class EventBus:
             self.subscribe_callback(callback)
 
     def subscribe_callback(self, callback: CallbackType) -> None:
+        """
+        Subscribe a callback to the event bus.
+
+        Parameters
+        ----------
+        callback : CallbackType
+            Function to be called when an event is published.
+
+        """
         self._callbacks.add(callback)
 
     def unsubscribe_callback(self, callback: CallbackType) -> None:
+        """
+        Unsubscribe a callback from the event bus.
+
+        Parameters
+        ----------
+        callback : CallbackType
+            Function to be unsubscribed.
+
+        """
         self._callbacks.discard(callback)
 
     @staticmethod

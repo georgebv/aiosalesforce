@@ -13,11 +13,13 @@ nav:
       - Authentication: documentation/authentication.md
       - Salesforce client: documentation/client.md
   - API Reference:
-      - Salesforce Client: api-reference/salesforce-client.md
-      - Sobject Client: api-reference/sobject-client.md
+      - Authentication: api-reference/auth.md
+      - Salesforce Client: api-reference/client.md
+      - Sobject Client: api-reference/sobject.md
       - Events: api-reference/events.md
       - Retries: api-reference/retries.md
       - Exceptions: api-reference/exceptions.md
+      - Utilities: api-reference/utils.md
 
 theme:
   name: material
@@ -57,8 +59,9 @@ plugins:
         python:
           options:
             show_source: true
+            show_root_toc_entry: false
             docstring_style: "numpy"
-            show_root_heading: true
+            members_order: "source"
 
 extra:
   social:
