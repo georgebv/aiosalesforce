@@ -64,13 +64,13 @@ salesforce = Salesforce(
 
 When you use the `Salesforce` client, it emits certain events to which you can
 subscribe. This allows you to perform custom actions at different stages of the
-request-response lifecycle. For example, you can log requests and responses, or
-track usage of the Salesforce API within your application.
+request-response lifecycle. For example, you can log requests and responses, monitor
+retries, or track usage of different Salesforce APIs within your application.
 
-You subscribe to events by declaring a function or a coroutine that will be
-called when an event is emitted and then providing that function to the client.
-The function will receive an event object as the only argument.
-The event object will contain information about the event.
+To subscribe to events, you need to define a callback function and then pass it to
+the `Salesforce` client. The callback function will be called when an event is emitted.
+The callback function will receive an event object as the only argument and will not
+return anything (any return value will be ignored by the client).
 
 ```python
 async def callback(event):
@@ -78,64 +78,38 @@ async def callback(event):
     ...
 ```
 
-!!! note "Note"
-
-    When subscribing to events, your function will receive all events emitted by the
-    `Salesforce` client. You are responsible for filtering out events you are
-    not interested in.
-
-!!! warning "Warning"
-
-    Only use `async def` if your callback function is asynchronous. If it contains
-    synchronous network calls, it will slow down the entire application by blocking
-    the event loop. If you need to perform synchronous operations, declare your
-    function as a regular function using `def` - such functions will be run in
-    a separate thread to avoid blocking the event loop.
-
-An example below shows how you can use event hooks to keep track of the number
-of requests made to the Salesforce API.
+Once you have defined your callback functions, you can pass them to the `Salesforce`
+client using the `event_hooks` parameter.
 
 ```python
-from aiosalesforce import RestApiCallConsumptionEvent
-
-
-def track_api_usage(event: RestApiCallConsumptionEvent):
-    match event:
-        case RestApiCallConsumptionEvent():
-            # Do whatever you need to do with the event
-            # For example, write to a metrics service (e.g., AWS CloudWatch)
-            ...
-        case _:
-            # Do nothing for other events
-            pass
-
 salesforce = Salesforce(
     ...,
-    event_hooks=[track_api_usage],
+    event_hooks=[callback, ...],
 )
 ```
 
-An alternative way of subscribing to events is to use the `subscribe_callback` method
-of the `event_loop` attribute of the `Salesforce` client:
+You can also add or remove callbacks after the client has been created using the
+`subscribe_callback` and `unsubscribe_callback` methods of the `event_loop` attribute
+of the `Salesforce` client.
 
 ```python
-salesforce.event_loop.subscribe_callback(track_api_usage)
+salesforce.event_loop.subscribe_callback(callback)
+salesforce.event_loop.unsubscribe_callback(callback)
 ```
 
-Similarly, you can unsubscribe a callback by using the `unsubscribe_callback` method:
+!!! note "Note"
 
-```python
-salesforce.event_loop.unsubscribe_callback(track_api_usage)
-```
-
-When you subscribe multiple callbacks to the client they will be called concurrently.
-This means that the order in which they are called is not guaranteed. Your callbacks
-can be synchronous, asynchronous, or a mix of both - `aiosalesforce` knows what to do
-in each case.
+    Event hooks are executed concurrently and are not guaranteed to be called in
+    the order they were added. Do not rely on the order of execution of your
+    callback functions. If you need to perform certain operations in a specific order,
+    declare them within the same callback function.
 
 ### Events
 
-All events have the `type` attribute.
+All events emitted by the `Salesforce` client are instances of the
+[`Event`](/aiosalesforce/api-reference/events/#aiosalesforce.events.Event) class.
+You can determine the type of event by checking the `type` attribute of the event
+or by checking the type of the event object.
 
 | Event                          | `type`                       | When emitted                                                            | Attributes                       |
 | ------------------------------ | ---------------------------- | ----------------------------------------------------------------------- | -------------------------------- |
@@ -145,16 +119,121 @@ All events have the `type` attribute.
 | `RestApiCallConsumptionEvent`  | `rest_api_call_consumption`  | When a Salesforce API call is consumed (includes unsuccessful requests) | `response`                       |
 | `BulkApiBatchConsumptionEvent` | `bulk_api_batch_consumption` | When a Bulk API (v1 or v2) batch is consumed                            | `response`                       |
 
-All events which have the `response` attribute will contain `consumed` and `remaining`
-attributes. The `consumed` attribute is the number of API calls consumed and the
-`remaining` attribute is the number of API calls remaining in the current
-24-hour period.
+!!! note "Note"
+
+    All events which have the `response` attribute will contain
+    `consumed` and `remaining` attributes. The `consumed` attribute is the number
+    of API calls consumed and the `remaining` attribute is the number of API calls
+    remaining in the current 24-hour period. Not all responses will have this
+    information (for example, authentication responses) - in such cases,
+    these attributes will have value `None`.
+
+### Callback Function
+
+The callback function will receive an event object as the only argument. You cannot
+specify what type of event you want to subscribe to - your callback function will
+receive all events emitted by the `Salesforce` client. You are responsible for
+filtering out events you are not interested in.
+
+Using the `type` attribute:
+
+```python
+from aiosalesforce import Event
+
+async def callback(event: Event) -> None:
+    match event.type:
+        case "request":
+            # Do something with the request event
+            ...
+        case "response":
+            # Do something with the response event
+            ...
+        case _:
+            # Do nothing for other events
+            pass
+```
+
+Using the type of the event object:
+
+```python
+from aiosalesforce import RequestEvent, ResponseEvent
+
+def callback(event) -> None:
+    match event:
+        case RequestEvent():
+            # Do something with the request event
+            ...
+        case ResponseEvent():
+            # Do something with the response event
+            ...
+        case _:
+            # Do nothing for other events
+            pass
+```
+
+!!! warning "Warning"
+
+    Only use `async def` if your callback function is asynchronous. If it contains
+    synchronous network calls, it will slow down the entire application by blocking
+    the event loop. If you need to perform synchronous operations, declare your
+    function as a regular function using `def` - such functions will be run in
+    a separate thread to avoid blocking the event loop. You can mix asynchronous
+    and synchronous functions when using event hooks - `aiosalesforce` will use
+    an appropriate concurrency model for each of your callback functions.
+
+### Examples
+
+#### Keep Track of API Usage
+
+An example below shows how you can use event hooks to keep track of the number
+of requests made to the Salesforce API. This can be useful if you want to record and
+monitor your API usage over time. For example, you can use send usage metrics to
+a metrics service like AWS CloudWatch.
+
+```python
+from aiosalesforce import (
+    Event,
+    BulkApiBatchConsumptionEvent,
+    RestApiCallConsumptionEvent,
+)
+
+
+def track_api_usage(event: Event):
+    match event:
+        case RestApiCallConsumptionEvent():
+            # Write to a metrics service (e.g., AWS CloudWatch)
+            ...
+        case BulkApiBatchConsumptionEvent():
+            # Write to a metrics service (e.g., AWS CloudWatch)
+            ...
+        case _:
+            # Do nothing for other events
+            pass
+```
+
+#### Log Retries
+
+```python
+from aiosalesforce import Event, RetryEvent
+
+
+async def log_retries(event: Event):
+    match event:
+        case RetryEvent():
+            # Log the request and response
+            print(
+                f"Retrying {event.request.method} request to {event.request.url}"
+            )
+        case _:
+            # Do nothing for other events
+            pass
+```
 
 ### Best Practices
 
 - Use asynchronous functions if you make asynchronous IO operations and synchronous
   functions if you make synchronous IO operations in your callback.
-- Use the `match` or `if` statement to filter out events you are not interested in.
+- Use the `match` or `if` statements to filter out events you are not interested in.
 - Declare one callback for each operation you want to perform. This will make
   your code run faster and be easier to understand.
 
