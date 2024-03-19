@@ -1,7 +1,12 @@
 from httpx import AsyncClient
 
 from aiosalesforce.auth.base import Auth
-from aiosalesforce.events import EventBus, RestApiCallConsumptionEvent
+from aiosalesforce.events import (
+    EventBus,
+    RequestEvent,
+    ResponseEvent,
+    RestApiCallConsumptionEvent,
+)
 from aiosalesforce.exceptions import AuthenticationError
 from aiosalesforce.utils import json_loads
 
@@ -34,7 +39,8 @@ class ClientCredentialsFlow(Auth):
         event_bus: EventBus,
     ) -> str:
         del version  # not used in this flow (this line is for linter)
-        response = await client.post(
+        request = client.build_request(
+            "POST",
             f"{base_url}/services/oauth2/token",
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -45,6 +51,8 @@ class ClientCredentialsFlow(Auth):
                 "client_secret": self.client_secret,
             },
         )
+        await event_bus.publish_event(RequestEvent(type="request", request=request))
+        response = await client.send(request)
         await event_bus.publish_event(
             RestApiCallConsumptionEvent(
                 type="rest_api_call_consumption",
@@ -65,4 +73,5 @@ class ClientCredentialsFlow(Auth):
                 error_code=error_code,
                 error_message=error_message,
             )
+        await event_bus.publish_event(ResponseEvent(type="response", response=response))
         return json_loads(response.content)["access_token"]

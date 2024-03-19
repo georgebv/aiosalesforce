@@ -153,7 +153,11 @@ class Salesforce:
                     await asyncio.gather(
                         self.retry_policy.sleep(attempt),
                         self.event_bus.publish_event(
-                            RetryEvent(type="retry", request=request)
+                            RetryEvent(
+                                type="retry",
+                                request=request,
+                                exception=exc,
+                            )
                         ),
                     )
                     continue
@@ -163,7 +167,7 @@ class Salesforce:
                     type="rest_api_call_consumption", response=response
                 )
             )
-            if response.status_code < 300:
+            if response.is_success:
                 break
             if response.status_code == 401:
                 if refreshed:

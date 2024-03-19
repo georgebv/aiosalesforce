@@ -107,17 +107,17 @@ salesforce.event_loop.unsubscribe_callback(callback)
 ### Events
 
 All events emitted by the `Salesforce` client are instances of the
-[`Event`](/aiosalesforce/api-reference/events/#aiosalesforce.events.Event) class.
+[`Event`](../api-reference/events.md#aiosalesforce.events.Event) class.
 You can determine the type of event by checking the `type` attribute of the event
 or by checking the type of the event object.
 
-| Event                          | `type`                       | When emitted                                                            | Attributes                       |
-| ------------------------------ | ---------------------------- | ----------------------------------------------------------------------- | -------------------------------- |
-| `RequestEvent`                 | `request`                    | Before making a request to the Salesforce API                           | `request`                        |
-| `RetryEvent`                   | `retry`                      | Before request is retried                                               | `request`, `response` (optional) |
-| `ResponseEvent`                | `response`                   | After an OK (status code < 300) response is received                    | `response`                       |
-| `RestApiCallConsumptionEvent`  | `rest_api_call_consumption`  | When a Salesforce API call is consumed (includes unsuccessful requests) | `response`                       |
-| `BulkApiBatchConsumptionEvent` | `bulk_api_batch_consumption` | When a Bulk API (v1 or v2) batch is consumed                            | `response`                       |
+| Event                          | `type`                       | When emitted                                                                                       | Attributes                                               |
+| ------------------------------ | ---------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `RequestEvent`                 | `request`                    | Before making a request to the Salesforce API                                                      | `request`                                                |
+| `RetryEvent`                   | `retry`                      | Before request is retried. Depending on the cause, has either `response` or `exception` attributes | `request`, `response` (optional), `exception` (optional) |
+| `ResponseEvent`                | `response`                   | After an OK (status code < 300) response is received                                               | `response`                                               |
+| `RestApiCallConsumptionEvent`  | `rest_api_call_consumption`  | When a Salesforce API call is consumed (includes unsuccessful requests)                            | `response`                                               |
+| `BulkApiBatchConsumptionEvent` | `bulk_api_batch_consumption` | When a Bulk API (v1 or v2) batch is consumed                                                       | `response`                                               |
 
 !!! note "Note"
 
@@ -201,11 +201,27 @@ from aiosalesforce import (
 def track_api_usage(event: Event):
     match event:
         case RestApiCallConsumptionEvent():
-            # Write to a metrics service (e.g., AWS CloudWatch)
-            ...
+            my_metrics_service.put_metric_data(
+                Namespace="Salesforce",
+                MetricData=[
+                    {
+                        "MetricName": "Salesforce REST API Call Count",
+                        "Value": 1,
+                        "Unit": "Count",
+                    },
+                ],
+            )
         case BulkApiBatchConsumptionEvent():
-            # Write to a metrics service (e.g., AWS CloudWatch)
-            ...
+            my_metrics_service.put_metric_data(
+                Namespace="Salesforce",
+                MetricData=[
+                    {
+                        "MetricName": "Salesforce Bulk API Batch Count",
+                        "Value": 1,
+                        "Unit": "Count",
+                    },
+                ],
+            )
         case _:
             # Do nothing for other events
             pass
@@ -220,9 +236,9 @@ from aiosalesforce import Event, RetryEvent
 async def log_retries(event: Event):
     match event:
         case RetryEvent():
-            # Log the request and response
             print(
-                f"Retrying {event.request.method} request to {event.request.url}"
+                f"Retrying {event.request.method} request to {event.request.url} "
+                f"due to: {event.response or type(event.exception).__name__}"
             )
         case _:
             # Do nothing for other events
@@ -314,7 +330,7 @@ The logic when deciding if a request should be retried is as follows:
    exception.
 
 You can find more information about the `RetryPolicy` class in the
-[API Reference](/aiosalesforce/api-reference/retries/#aiosalesforce.retries.RetryPolicy).
+[API Reference](../api-reference/retries.md#aiosalesforce.retries.RetryPolicy).
 
 ### Response Rule
 

@@ -34,6 +34,7 @@ theme:
     - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
+    - navigation.footer
     - search.suggest
     - content.code.copy
   palette:

@@ -54,12 +54,7 @@ class Event:
 
 @dataclass
 class RequestEvent(Event):
-    """
-    Emitted before a request is sent for the first time.
-
-    Is not emitted by authentication requests.
-
-    """
+    """Emitted before a request is sent for the first time."""
 
     type: Literal["request"]
     request: Request
@@ -67,26 +62,17 @@ class RequestEvent(Event):
 
 @dataclass
 class RetryEvent(Event, ResponseMixin):
-    """
-    Emitted immediately before a request is retried.
-
-    Is not emitted by authentication requests.
-
-    """
+    """Emitted immediately before a request is retried."""
 
     type: Literal["retry"]
     request: Request
     response: Response | None = None
+    exception: Exception | None = None
 
 
 @dataclass
 class ResponseEvent(Event, ResponseMixin):
-    """
-    Emitted after an OK (status code < 300) response is received.
-
-    Is not emitted by authentication requests.
-
-    """
+    """Emitted after an OK (status code < 300) response is received."""
 
     type: Literal["response"]
     response: Response
@@ -94,12 +80,7 @@ class ResponseEvent(Event, ResponseMixin):
 
 @dataclass
 class RestApiCallConsumptionEvent(Event, ResponseMixin):
-    """
-    Emitted after a REST API call is consumed.
-
-    Emitted by all requests, including authentication requests.
-
-    """
+    """Emitted after a REST API call is consumed."""
 
     type: Literal["rest_api_call_consumption"]
     response: Response

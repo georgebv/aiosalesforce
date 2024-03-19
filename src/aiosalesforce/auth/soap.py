@@ -5,7 +5,12 @@ import time
 from httpx import AsyncClient
 
 from aiosalesforce.auth.base import Auth
-from aiosalesforce.events import EventBus, RestApiCallConsumptionEvent
+from aiosalesforce.events import (
+    EventBus,
+    RequestEvent,
+    ResponseEvent,
+    RestApiCallConsumptionEvent,
+)
 from aiosalesforce.exceptions import AuthenticationError
 
 
@@ -60,7 +65,8 @@ class SoapLogin(Auth):
             </env:Body>
         </env:Envelope>
         """
-        response = await client.post(
+        request = client.build_request(
+            "POST",
             f"{base_url}/services/Soap/u/{version}",
             content=textwrap.dedent(soap_xml_payload).strip(),
             headers={
@@ -69,6 +75,8 @@ class SoapLogin(Auth):
                 "Accept": "text/xml",
             },
         )
+        await event_bus.publish_event(RequestEvent(type="request", request=request))
+        response = await client.send(request)
         await event_bus.publish_event(
             RestApiCallConsumptionEvent(
                 type="rest_api_call_consumption",
@@ -125,6 +133,7 @@ class SoapLogin(Auth):
             except ValueError:  # pragma: no cover
                 pass
 
+        await event_bus.publish_event(ResponseEvent(type="response", response=response))
         return session_id
 
     @property

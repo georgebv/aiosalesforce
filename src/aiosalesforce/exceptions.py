@@ -81,12 +81,16 @@ def raise_salesforce_error(response: Response) -> NoReturn:
     match (response.status_code, error_code):
         case (300, _):
             exc_class = MoreThanOneRecordError
+            try:
+                records = [f"  {record}" for record in json_loads(response.content)]
+            except Exception as exc:
+                records = [f"  Failed to parse response: {exc}"]
             if error_code is None:
                 error_message = "\n".join(
                     [
                         "More than one record found for external ID.",
                         f"{response.url}",
-                        *[f"  {record}" for record in json_loads(response.content)],
+                        *records,
                     ]
                 )
         case (_, "REQUEST_LIMIT_EXCEEDED"):
