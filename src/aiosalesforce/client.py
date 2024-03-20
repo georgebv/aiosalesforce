@@ -88,12 +88,12 @@ class Salesforce:
         self.auth = auth
 
         # Validate version
-        if not re.fullmatch(r"\d+\.0", version):
+        if not (match_ := re.fullmatch(r"^(v)?(\d+)(\.(0)?)?$", version)):
             raise ValueError(
                 f"Invalid Salesforce API version: '{version}'. "
-                f"A valid version would look like '60.0'."
+                f"A valid version should look like '60.0'."
             )
-        self.version = version
+        self.version = f"{match_.groups()[1]}.0"
 
         # Validate url
         match_ = re.fullmatch(

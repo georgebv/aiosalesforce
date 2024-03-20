@@ -35,21 +35,52 @@ class TestInit:
         assert salesforce.base_url == config["base_url"]
         assert salesforce.auth is soap_auth
 
-    @pytest.mark.parametrize("version", ["v57.0", "69.4"])
+    @pytest.mark.parametrize(
+        "version,expected_version",
+        [
+            ("57", "57.0"),
+            ("57.", "57.0"),
+            ("57.0", "57.0"),
+            ("v57", "57.0"),
+            ("v57.", "57.0"),
+            ("v57.0", "57.0"),
+            ("69.4", None),
+            ("69.4", None),
+        ],
+        ids=[
+            "57 - valid",
+            "57. - valid",
+            "57.0 - valid",
+            "v57 - valid",
+            "v57. - valid",
+            "v57.0 - valid",
+            "69.4 - invalid",
+            "69.1.2 - invalid",
+        ],
+    )
     def test_invalid_version(
-        self, version: str, config: dict[str, str], httpx_client: httpx.AsyncClient
+        self,
+        version: str,
+        expected_version: str | None,
+        config: dict[str, str],
+        httpx_client: httpx.AsyncClient,
     ):
-        with pytest.raises(ValueError):
-            Salesforce(
-                httpx_client=httpx_client,
-                base_url=config["base_url"],
-                auth=SoapLogin(
-                    username=config["username"],
-                    password=config["password"],
-                    security_token=config["security_token"],
-                ),
-                version=version,
-            )
+        partial = functools.partial(
+            Salesforce,
+            httpx_client=httpx_client,
+            base_url=config["base_url"],
+            auth=SoapLogin(
+                username=config["username"],
+                password=config["password"],
+                security_token=config["security_token"],
+            ),
+        )
+        if expected_version is None:
+            with pytest.raises(ValueError, match="Invalid Salesforce API version"):
+                partial(version=version)
+        else:
+            salesforce = partial(version=version)
+            assert salesforce.version == expected_version
 
     @pytest.mark.parametrize(
         "base_url,expected_url",
@@ -131,7 +162,7 @@ class TestInit:
             version=config["api_version"],
         )
         if expected_url is None:
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match=r"Invalid Salesforce URL"):
                 partial(base_url=base_url)
         else:
             salesforce = partial(base_url=base_url)

@@ -55,10 +55,8 @@ salesforce = Salesforce(
 )
 ```
 
-!!! warning "Warning"
-
-    Version must be a string in the format of `XX.0` (e.g., `60.0`).
-    Value like `v60.0` is not valid and will result in an error.
+Valid version values looks like `XX`, `XX.`, `XX.0`, `vXX`, `vXX.`, `vXX.0`, where
+`XX` is a number. For example, `52.0` is a valid version but `52.1` is not.
 
 ## Event Hooks
 
