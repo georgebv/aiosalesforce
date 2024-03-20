@@ -180,8 +180,8 @@ class SobjectClient:
         self,
         sobject: str,
         id_: str,
-        external_id_field: str,
         /,
+        external_id_field: str,
         data: dict | str | bytes | bytearray,
         validate: bool = True,
     ) -> UpsertResponse:

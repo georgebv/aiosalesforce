@@ -1,6 +1,8 @@
 import urllib.parse
 
 import httpx
+import orjson
+import pytest
 import respx
 
 from aiosalesforce import Salesforce
@@ -164,3 +166,137 @@ async def test_delete_by_external_id(
         external_id_field=external_id_field,
     )
     assert side_effect.called
+
+
+class TestUpsert:
+    async def test_without_validation(
+        self,
+        salesforce: Salesforce,
+        httpx_mock_router: respx.MockRouter,
+    ):
+        external_id = "123"
+        external_id_field = "ESSN__c"
+        request_data = {
+            "FirstName": "John",
+            "LastName": "Doe",
+            external_id_field: external_id,
+        }
+        response_data = {
+            "id": "0015800000K7f2PAAR",
+            "success": True,
+            "errors": [],
+            "created": True,
+        }
+
+        class SideEffect:
+            def __init__(self) -> None:
+                self.called = False
+
+            def __call__(self, request: httpx.Request) -> httpx.Response:
+                assert request.method == "PATCH"
+                assert request.content == json_dumps(request_data)
+                self.called = True
+                return httpx.Response(201, json=response_data)
+
+        side_effect = SideEffect()
+
+        httpx_mock_router.patch(
+            f"{salesforce.sobject.base_url}/Account/{external_id_field}/{external_id}",
+        ).mock(side_effect=side_effect)
+        response = await salesforce.sobject.upsert(
+            "Account",
+            external_id,
+            external_id_field=external_id_field,
+            data=request_data,
+            validate=False,
+        )
+        assert side_effect.called
+        assert response.id == response_data["id"]
+        assert response.created
+
+    @pytest.mark.parametrize(
+        "external_id_in_payload",
+        [True, False],
+        ids=["in_payload", "not_in_payload"],
+    )
+    @pytest.mark.parametrize(
+        "data_type",
+        [dict, str],
+        ids=["dict", "str"],
+    )
+    async def test_with_validation_external_id_in_payload(
+        self,
+        data_type: type,
+        external_id_in_payload: bool,
+        salesforce: Salesforce,
+        httpx_mock_router: respx.MockRouter,
+    ):
+        external_id = "123"
+        external_id_field = "ESSN__c"
+        request_data = {
+            "FirstName": "John",
+            "LastName": "Doe",
+        }
+        if external_id_in_payload:
+            request_data[external_id_field] = external_id
+        response_data = {
+            "id": "0015800000K7f2PAAR",
+            "success": True,
+            "errors": [],
+            "created": False,
+        }
+
+        class SideEffect:
+            def __init__(self) -> None:
+                self.called = False
+
+            def __call__(self, request: httpx.Request) -> httpx.Response:
+                assert request.method == "PATCH"
+                assert external_id_field not in orjson.loads(request.content)
+                assert request.content == json_dumps(
+                    {k: v for k, v in request_data.items() if k != external_id_field}
+                )
+                self.called = True
+                return httpx.Response(200, json=response_data)
+
+        side_effect = SideEffect()
+
+        httpx_mock_router.patch(
+            f"{salesforce.sobject.base_url}/Account/{external_id_field}/{external_id}",
+        ).mock(side_effect=side_effect)
+        response = await salesforce.sobject.upsert(
+            "Account",
+            external_id,
+            external_id_field=external_id_field,
+            data=request_data if data_type is dict else json_dumps(request_data),
+            validate=True,
+        )
+        assert side_effect.called
+        assert response.id == response_data["id"]
+        assert not response.created
+
+    async def test_with_validation_invalid_type(self, salesforce: Salesforce):
+        with pytest.raises(
+            TypeError,
+            match=r"data must be a dict, str, bytes, or bytearray",
+        ):
+            await salesforce.sobject.upsert(
+                "Account",
+                "123",
+                external_id_field="ESSN__c",
+                data=[1, 2, 3],  # type: ignore
+                validate=True,
+            )
+
+    async def test_with_validation_external_id_mismatch(self, salesforce: Salesforce):
+        with pytest.raises(
+            ValueError,
+            match=r"External ID field.*in data.*does not match the provided external",
+        ):
+            await salesforce.sobject.upsert(
+                "Account",
+                "123",
+                external_id_field="ESSN__c",
+                data={"FirstName": "John", "LastName": "Doe", "ESSN__c": "456"},
+                validate=True,
+            )
