@@ -1,15 +1,17 @@
 import functools
 
-from unittest.mock import AsyncMock, call
+from unittest.mock import AsyncMock, call, patch
 
 import httpx
 import pytest
 import respx
 
 from aiosalesforce import (
+    ExceptionRule,
     RequestEvent,
     ResponseEvent,
     RestApiCallConsumptionEvent,
+    RetryPolicy,
     Salesforce,
 )
 from aiosalesforce.auth import SoapLogin
@@ -154,7 +156,9 @@ class TestRequest:
         response = await salesforce.request("GET", url)
         assert response.status_code == 200
 
-        # Assert event hook was called: 3 for auth and 3 for request
+        # Assert event hook was called:
+        # - 3 for auth (request, consumption, response)
+        # - 3 for request (request, consumption, response)
         # We only test events related to request itself
         assert event_hook.await_count == 6
         event_hook.assert_has_awaits(
@@ -169,7 +173,89 @@ class TestRequest:
             ]
         )
 
-    # TODO Exception retry
+    async def test_retry_on_exception(
+        self,
+        config: dict[str, str],
+        httpx_mock_router: respx.MockRouter,
+        salesforce: Salesforce,
+    ):
+        # Mock request
+        url = f"{config['base_url']}/some/path"
+        httpx_mock_router.get(url).mock(
+            side_effect=[
+                httpx.ConnectError,
+                httpx.ConnectError,
+                httpx.ConnectError,
+                httpx.Response(status_code=200),
+            ],
+        )
+
+        # Configure retry policy
+        salesforce.retry_policy = RetryPolicy(
+            max_retries=3,
+            exception_rules=[ExceptionRule(httpx.ConnectError)],
+        )
+
+        # Subscribe a mock event hook
+        event_hook = AsyncMock()
+        salesforce.event_bus.subscribe_callback(event_hook)
+
+        # Execute request (mock sleeping in retry policy)
+        sleep_mock = AsyncMock()
+        with patch("asyncio.sleep", sleep_mock):
+            response = await salesforce.request("GET", url)
+        assert response.status_code == 200
+
+        # Assert event hook was called:
+        # - 3 for auth
+        # - 3 for request (request, consumption, response)
+        # - 3 for retry (exception retries don't consume API calls)
+        assert event_hook.await_count == 9
+        assert sleep_mock.await_count == 3
+
+    async def test_retry_on_exception_exceed_limit(
+        self,
+        config: dict[str, str],
+        httpx_mock_router: respx.MockRouter,
+        salesforce: Salesforce,
+    ):
+        # Mock request
+        url = f"{config['base_url']}/some/path"
+        httpx_mock_router.get(url).mock(
+            side_effect=[
+                httpx.ConnectError,
+                httpx.ConnectError,
+                httpx.ConnectError,
+                httpx.ConnectError,
+                httpx.Response(status_code=200),
+            ],
+        )
+
+        # Configure retry policy
+        salesforce.retry_policy = RetryPolicy(
+            max_retries=3,
+            exception_rules=[ExceptionRule(httpx.ConnectError)],
+        )
+
+        # Subscribe a mock event hook
+        event_hook = AsyncMock()
+        salesforce.event_bus.subscribe_callback(event_hook)
+
+        # Execute request (mock sleeping in retry policy)
+        sleep_mock = AsyncMock()
+        with (
+            patch("asyncio.sleep", sleep_mock),
+            pytest.raises(httpx.ConnectError),
+        ):
+            await salesforce.request("GET", url)
+
+        # Assert event hook was called:
+        # - 3 for auth
+        # - 1 for request (request)
+        # - 3 for retry (exception retries don't consume API calls)
+        assert event_hook.await_count == 7
+        assert sleep_mock.await_count == 3
+
     # TODO Response retry
     # TODO Reauthentication + failed reauthentication
     # TODO Error handling
