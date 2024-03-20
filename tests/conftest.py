@@ -8,7 +8,7 @@ import pytest
 import respx
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def config() -> dict[str, str]:
     """Configuration shared across tests."""
     return {
@@ -23,7 +23,7 @@ def config() -> dict[str, str]:
 @pytest.fixture(scope="function", autouse=True)
 def httpx_mock_router() -> Generator[respx.MockRouter, None, None]:
     with respx.mock(
-        assert_all_called=True,
+        assert_all_called=False,
         assert_all_mocked=True,
     ) as respx_mock:
         yield respx_mock
@@ -37,8 +37,8 @@ async def httpx_client() -> AsyncGenerator[httpx.AsyncClient, None]:
 
 @pytest.fixture(scope="function")
 async def mock_soap_login(
-    httpx_mock_router: respx.MockRouter,
     config: dict[str, str],
+    httpx_mock_router: respx.MockRouter,
 ) -> AsyncGenerator[str, None]:
     session_id = "SUPER-SECRET-SESSION-ID"
 

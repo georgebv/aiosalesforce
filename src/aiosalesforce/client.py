@@ -58,6 +58,7 @@ class Salesforce:
             Server errors (5xx)
             Row lock errors
             Rate limit errors
+        Set to None to disable retries.
     concurrency_limit : int, optional
         Maximum number of simultaneous requests to Salesforce.
         The default is 100.
@@ -80,7 +81,7 @@ class Salesforce:
         auth: Auth,
         version: str = "60.0",
         event_hooks: list[Callable[[Event], Awaitable[None] | None]] | None = None,
-        retry_policy: RetryPolicy = POLICY_DEFAULT,
+        retry_policy: RetryPolicy | None = POLICY_DEFAULT,
         concurrency_limit: int = 100,
     ) -> None:
         self.httpx_client = httpx_client
@@ -114,7 +115,7 @@ class Salesforce:
         self.base_url = str(match_.groups()[0])
 
         self.event_bus = EventBus(event_hooks)
-        self.retry_policy = retry_policy
+        self.retry_policy = retry_policy or RetryPolicy()
         self.__semaphore = asyncio.Semaphore(concurrency_limit)
 
     @wraps(httpx.AsyncClient.request)

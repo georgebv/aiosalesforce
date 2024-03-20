@@ -127,6 +127,8 @@ class TestSoapLogin:
         httpx_client: httpx.AsyncClient,
         mock_soap_login: str,
     ):
+        event_hook = AsyncMock()
+        event_bus = EventBus([event_hook])
         auth = SoapLogin(
             username=config["username"],
             password=config["password"],
@@ -136,9 +138,10 @@ class TestSoapLogin:
             client=httpx_client,
             base_url=config["base_url"],
             version=config["api_version"],
-            event_bus=EventBus(),
+            event_bus=event_bus,
         )
         assert received_session_id == mock_soap_login
+        assert event_hook.await_count == 3
 
     @pytest.mark.usefixtures("mock_soap_login")
     async def test_soap_login_expiration(
@@ -225,6 +228,8 @@ class TestClientCredentialsFlow:
             )
         )
 
+        event_hook = AsyncMock()
+        event_bus = EventBus([event_hook])
         auth = ClientCredentialsFlow(
             client_id="super-secret-client-id",
             client_secret="super-secret-client-secret",  # noqa: S106
@@ -233,7 +238,7 @@ class TestClientCredentialsFlow:
             client=httpx_client,
             base_url=config["base_url"],
             version=config["api_version"],
-            event_bus=EventBus(),
+            event_bus=event_bus,
         )
         assert access_token == expected_access_token
         assert not auth.expired
@@ -243,6 +248,7 @@ class TestClientCredentialsFlow:
         ):
             # Access token for the Client Credentials Flow never expires
             assert not auth.expired
+        assert event_hook.await_count == 3
 
     async def test_client_credentials_flow_invalid_credentials(
         self,
