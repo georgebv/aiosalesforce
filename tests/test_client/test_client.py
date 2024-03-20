@@ -432,3 +432,101 @@ class TestRequest:
         # - 3 for auth (request, consumption, response)
         # - 3 for request (request, consumption, response)
         assert event_hook.await_count == 6
+
+
+class TestSoql:
+    @pytest.mark.parametrize(
+        "expected_records",
+        [
+            [],
+            [{"Id": "003000000000001"}],
+            [{"Id": "003000000000001"}, {"Id": "003000000000002"}],
+        ],
+        ids=["no records", "single record", "multiple records"],
+    )
+    async def test_single_page(
+        self,
+        expected_records: list[dict[str, str]],
+        config: dict[str, str],
+        httpx_mock_router: respx.MockRouter,
+        salesforce: Salesforce,
+    ):
+        query = "SELECT Id FROM Contact WHERE Email = 'jdoe@example.com'"
+
+        # Mock request
+        httpx_mock_router.get(
+            f"{config['base_url']}/services/data/v{config['api_version']}/query",
+            params={"q": query},
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json={
+                    "done": True,
+                    "totalSize": len(expected_records),
+                    "records": expected_records,
+                },
+            ),
+        )
+
+        # Subscribe a mock event hook
+        event_hook = AsyncMock()
+        salesforce.event_bus.subscribe_callback(event_hook)
+
+        # Execute query
+        records = []
+        async for record in salesforce.query(query):
+            records.append(record)
+        assert records == expected_records
+
+        # Assert event hook was called:
+        # - 3 for auth (request, consumption, response)
+        # - 3 for request (request, consumption, response)
+        assert event_hook.await_count == 6
+
+    async def test_multiple_pages(
+        self,
+        config: dict[str, str],
+        httpx_mock_router: respx.MockRouter,
+        salesforce: Salesforce,
+    ):
+        query = "SELECT Id FROM Contact WHERE Email = 'jdoe@example.com'"
+
+        # Mock requests
+        url = f"{config['base_url']}/services/data/v{config['api_version']}/query"
+        for i in range(3):
+            response_json = {
+                "done": i == 2,
+                "totalSize": 6000,
+                "records": [
+                    {"Id": f"00300000000000{j}"}
+                    for j in range(i * 2000, (i + 1) * 2000)
+                ],
+            }
+            if i < 2:
+                response_json["nextRecordsUrl"] = (
+                    f"/services/data/v{config['api_version']}/query/01g00000000000{i+1}"
+                )
+            httpx_mock_router.get(
+                url if i == 0 else url + f"/01g00000000000{i}",
+                params={"q": query} if i == 0 else None,
+            ).mock(
+                return_value=httpx.Response(
+                    status_code=200,
+                    json=response_json,
+                ),
+            )
+
+        # Subscribe a mock event hook
+        event_hook = AsyncMock()
+        salesforce.event_bus.subscribe_callback(event_hook)
+
+        # Execute query
+        records = []
+        async for record in salesforce.query(query):
+            records.append(record)
+        assert len(records) == 6000
+
+        # Assert event hook was called:
+        # - 3 for auth (request, consumption, response)
+        # - 9 for request (request, consumption, response) x 3
+        assert event_hook.await_count == 12
