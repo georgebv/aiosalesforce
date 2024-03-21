@@ -1,4 +1,5 @@
 import datetime
+import zoneinfo
 
 import pytest
 
@@ -57,14 +58,21 @@ class TestSoqlFormatting:
             (1.23, "1.23"),
             (
                 datetime.datetime(2024, 5, 6, 12, 0, 0),
-                "2024-05-06T12:00:00+00:00",
+                "2024-05-06T12:00:00.000",
             ),
             (
                 datetime.datetime.strptime(
                     "2024-05-06T12:00:00+08:00",
                     r"%Y-%m-%dT%H:%M:%S%z",
                 ),
-                "2024-05-06T12:00:00+08:00",
+                "2024-05-06T12:00:00.000+08:00",
+            ),
+            (
+                datetime.datetime(
+                    *(2024, 5, 6, 12, 0, 0, 123000),
+                    tzinfo=zoneinfo.ZoneInfo("America/New_York"),
+                ),
+                "2024-05-06T12:00:00.123-04:00",
             ),
             (datetime.date(2024, 5, 6), "2024-05-06"),
             ("foo", "'foo'"),
@@ -90,6 +98,7 @@ class TestSoqlFormatting:
             "float",
             "datetime no tz",
             "datetime with tz",
+            "datetime with zoneinfo tz",
             "date",
             "no-op string",
             "empty string",

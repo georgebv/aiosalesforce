@@ -29,7 +29,7 @@ def json_dumps(data: str | bytes | bytearray | Any) -> bytes:
         return bytes(data)
     if isinstance(data, bytes):
         return data
-    return orjson.dumps(data)
+    return orjson.dumps(data, option=orjson.OPT_OMIT_MICROSECONDS | orjson.OPT_UTC_Z)
 
 
 def json_loads(data: str | bytes | bytearray) -> Any:
@@ -113,11 +113,8 @@ def _sanitize_soql_query_parameter(  # noqa: PLR0911
         case int() | float():
             return str(value)
         case datetime.datetime():
-            offset = "+00:00"
-            if value.tzinfo is not None:
-                offset = value.strftime("%z")
-                offset = offset[0:3] + ":" + offset[3:5]
-            return value.strftime(r"%Y-%m-%dT%H:%M:%S") + offset
+            # yyyy-MM-ddTHH:mm:ss.SSS+/-HH:mm
+            return value.isoformat(timespec="milliseconds")
         case datetime.date():
             return value.strftime(r"%Y-%m-%d")
         case str():
