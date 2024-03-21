@@ -1,4 +1,5 @@
 import datetime
+import sys
 import zoneinfo
 
 import pytest
@@ -67,12 +68,16 @@ class TestSoqlFormatting:
                 ),
                 "2024-05-06T12:00:00.000+08:00",
             ),
-            (
+            pytest.param(
                 datetime.datetime(
                     *(2024, 5, 6, 12, 0, 0, 123000),
                     tzinfo=zoneinfo.ZoneInfo("America/New_York"),
                 ),
                 "2024-05-06T12:00:00.123-04:00",
+                marks=pytest.mark.skipif(
+                    sys.platform == "win32",
+                    reason="Windows doesn't have IANA time zone database",
+                ),
             ),
             (datetime.date(2024, 5, 6), "2024-05-06"),
             ("foo", "'foo'"),
