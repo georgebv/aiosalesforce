@@ -71,7 +71,9 @@ class TestSoqlFormatting:
             pytest.param(
                 datetime.datetime(
                     *(2024, 5, 6, 12, 0, 0, 123000),
-                    tzinfo=zoneinfo.ZoneInfo("America/New_York"),
+                    tzinfo=zoneinfo.ZoneInfo("America/New_York")
+                    if sys.platform != "win32"
+                    else None,
                 ),
                 "2024-05-06T12:00:00.123-04:00",
                 marks=pytest.mark.skipif(
