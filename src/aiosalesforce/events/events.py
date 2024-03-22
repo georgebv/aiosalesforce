@@ -65,6 +65,7 @@ class RetryEvent(Event, ResponseMixin):
     """Emitted immediately before a request is retried."""
 
     type: Literal["retry"]
+    attempt: int
     request: Request
     response: Response | None = None
     exception: Exception | None = None
@@ -84,6 +85,7 @@ class RestApiCallConsumptionEvent(Event, ResponseMixin):
 
     type: Literal["rest_api_call_consumption"]
     response: Response
+    count: int
 
 
 @dataclass
@@ -92,3 +94,4 @@ class BulkApiBatchConsumptionEvent(Event, ResponseMixin):
 
     type: Literal["bulk_api_batch_consumption"]
     response: Response
+    count: int

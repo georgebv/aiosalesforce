@@ -109,13 +109,18 @@ All events emitted by the `Salesforce` client are instances of the
 You can determine the type of event by checking the `type` attribute of the event
 or by checking the type of the event object.
 
-| Event                          | `type`                       | When emitted                                                                                       | Attributes                                               |
-| ------------------------------ | ---------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `RequestEvent`                 | `request`                    | Before making a request to the Salesforce API                                                      | `request`                                                |
-| `RetryEvent`                   | `retry`                      | Before request is retried. Depending on the cause, has either `response` or `exception` attributes | `request`, `response` (optional), `exception` (optional) |
-| `ResponseEvent`                | `response`                   | After an OK (status code < 300) response is received                                               | `response`                                               |
-| `RestApiCallConsumptionEvent`  | `rest_api_call_consumption`  | When a Salesforce API call is consumed (includes unsuccessful requests)                            | `response`                                               |
-| `BulkApiBatchConsumptionEvent` | `bulk_api_batch_consumption` | When a Bulk API (v1 or v2) batch is consumed                                                       | `response`                                               |
+| Event                          | `type`                       | When emitted                                                                                       | Attributes                                                          |
+| ------------------------------ | ---------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `RequestEvent`                 | `request`                    | Before making a request to the Salesforce API                                                      | `request`                                                           |
+| `RetryEvent`                   | `retry`                      | Before request is retried. Depending on the cause, has either `response` or `exception` attributes | `request`, `attempt`, `response` (optional), `exception` (optional) |
+| `ResponseEvent`                | `response`                   | After an OK (status code < 300) response is received                                               | `response`                                                          |
+| `RestApiCallConsumptionEvent`  | `rest_api_call_consumption`  | When a Salesforce API call is consumed (includes unsuccessful requests)                            | `response`, `count`                                                 |
+| `BulkApiBatchConsumptionEvent` | `bulk_api_batch_consumption` | When a Bulk API (v1 or v2) batch is consumed                                                       | `response`, `count`                                                 |
+
+!!! note "Note"
+
+    The `attempt` attribute of the `RetryEvent` indicates sequential number
+    of the retry attempt. The first attempt is `1`, the second is `2`, and so on.
 
 !!! note "Note"
 
@@ -204,7 +209,7 @@ def track_api_usage(event: Event):
                 MetricData=[
                     {
                         "MetricName": "Salesforce REST API Call Count",
-                        "Value": 1,
+                        "Value": event.count,
                         "Unit": "Count",
                     },
                 ],
@@ -215,7 +220,7 @@ def track_api_usage(event: Event):
                 MetricData=[
                     {
                         "MetricName": "Salesforce Bulk API Batch Count",
-                        "Value": 1,
+                        "Value": event.count,
                         "Unit": "Count",
                     },
                 ],
@@ -236,7 +241,8 @@ async def log_retries(event: Event):
         case RetryEvent():
             print(
                 f"Retrying {event.request.method} request to {event.request.url} "
-                f"due to: {event.response or type(event.exception).__name__}"
+                f"due to: {event.response or type(event.exception).__name__}. "
+                f"This is attempt {event.attempt}"
             )
         case _:
             # Do nothing for other events

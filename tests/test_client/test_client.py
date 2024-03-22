@@ -199,7 +199,9 @@ class TestRequest:
                 call(RequestEvent(type="request", request=response.request)),
                 call(
                     RestApiCallConsumptionEvent(
-                        type="rest_api_call_consumption", response=response
+                        type="rest_api_call_consumption",
+                        response=response,
+                        count=1,
                     )
                 ),
                 call(ResponseEvent(type="response", response=response)),

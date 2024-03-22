@@ -156,6 +156,7 @@ class Salesforce:
                         self.event_bus.publish_event(
                             RetryEvent(
                                 type="retry",
+                                attempt=attempt + 1,
                                 request=request,
                                 exception=exc,
                             )
@@ -165,7 +166,9 @@ class Salesforce:
                 raise
             await self.event_bus.publish_event(
                 RestApiCallConsumptionEvent(
-                    type="rest_api_call_consumption", response=response
+                    type="rest_api_call_consumption",
+                    response=response,
+                    count=1,
                 )
             )
             if response.is_success:
@@ -188,6 +191,7 @@ class Salesforce:
                     self.event_bus.publish_event(
                         RetryEvent(
                             type="retry",
+                            attempt=attempt + 1,
                             request=request,
                             response=response,
                         )

@@ -57,6 +57,7 @@ class ClientCredentialsFlow(Auth):
             RestApiCallConsumptionEvent(
                 type="rest_api_call_consumption",
                 response=response,
+                count=1,
             )
         )
         if not response.is_success:

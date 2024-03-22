@@ -81,6 +81,7 @@ class SoapLogin(Auth):
             RestApiCallConsumptionEvent(
                 type="rest_api_call_consumption",
                 response=response,
+                count=1,
             )
         )
         response_text = response.text

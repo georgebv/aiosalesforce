@@ -51,6 +51,7 @@ class TestResponseMixin:
     def test_with_no_response(self):
         response_event = RetryEvent(
             type="retry",
+            attempt=1,
             request=Request("GET", "https://example.com"),
             response=None,
         )
