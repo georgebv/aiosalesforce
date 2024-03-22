@@ -1,9 +1,7 @@
 import csv
-import json
+import datetime
 
 from typing import Any, Iterable
-
-from aiosalesforce.utils import json_dumps
 
 
 class CsvBuffer:
@@ -47,6 +45,47 @@ class CsvBuffer:
         return b"".join(self.__content)
 
 
+def _serialize_value(value: Any) -> str:
+    """Serialize a scalar value to a string for CSV serialization."""
+    match value:
+        case True:
+            return "true"
+        case False:
+            return "false"
+        case None:
+            return ""
+        case datetime.datetime():
+            # yyyy-MM-ddTHH:mm:ss.SSS+/-HH:mm
+            return value.isoformat(timespec="milliseconds")
+        case datetime.date():
+            return value.strftime(r"%Y-%m-%d")
+        case str() | int() | float():
+            return str(value)
+        case _:
+            raise TypeError(f"Invalid value type '{type(value).__name__}'")
+
+
+def _serialize_dict(data: dict[str, Any]) -> dict[str, str]:
+    """Serialize a dictionary for CSV serialization."""
+    new_dict = {}
+    for key, value in data.items():
+        new_key = key
+        if isinstance(value, dict):
+            if len(value) != 1:
+                raise ValueError(
+                    f"Dict for '{key}' must have exactly one value, got {len(value)}"
+                )
+            new_key = f"{key}.{next(iter(value.keys()))}"
+            try:
+                new_value = _serialize_value(next(iter(value.values())))
+            except TypeError as exc:
+                raise TypeError(f"Invalid dict value for '{key}'") from exc
+        else:
+            new_value = _serialize_value(value)
+        new_dict[new_key] = new_value
+    return new_dict
+
+
 def serialize_ingest_data(
     data: Iterable[dict[str, Any]],
     fieldnames: list[str] | None = None,
@@ -54,10 +93,10 @@ def serialize_ingest_data(
     max_records: int = 150_000_000,
 ) -> Iterable[bytes]:
     """
-    Serialize data into CSV files for ingestion into Salesforce.
+    Serialize data into CSV files for ingestion by Salesforce Bulk API 2.0.
 
     None or missing values are ignored by Salesforce.
-    To write a true null value, use the string "#N/A".
+    To set a field in Salesforce to NULL, use the string "#N/A".
 
     Parameters
     ----------
@@ -85,7 +124,7 @@ def serialize_ingest_data(
     """
     if fieldnames is None:
         _fields: set[str] = set()
-        for record in data:
+        for record in (_serialize_dict(record) for record in data):
             _fields.update(record.keys())
         fieldnames = list(_fields)
 
@@ -97,15 +136,13 @@ def serialize_ingest_data(
     )
 
     carry_over: bytes | None = None
-    for row in data:
+    for row in (_serialize_dict(record) for record in data):
         if buffer.size == 0:
             writer.writeheader()
             if carry_over is not None:
                 buffer.write(carry_over.decode("utf-8"))
                 carry_over = None
-        # Serialize the row to JSON using the custom encoder which handles datetimes
-        # and then load the JSON back into a dictionary with CSV-safe values
-        writer.writerow(json.loads(json_dumps(row)))
+        writer.writerow(row)
         if buffer.size >= max_size_bytes or buffer.n_rows >= max_records:
             carry_over = buffer.pop()
             yield buffer.content
