@@ -5,6 +5,8 @@ from typing import Any, Iterable
 
 
 class CsvBuffer:
+    """Utility class for buffering CSV data."""
+
     __content: list[bytes]
     __size: int
 
@@ -46,7 +48,7 @@ class CsvBuffer:
 
 
 def _serialize_value(value: Any) -> str:
-    """Serialize a scalar value to a string for CSV serialization."""
+    """Serialize a CSV scalar value."""
     match value:
         case True:
             return "true"
@@ -66,7 +68,7 @@ def _serialize_value(value: Any) -> str:
 
 
 def _serialize_dict(data: dict[str, Any]) -> dict[str, str]:
-    """Serialize a dictionary for CSV serialization."""
+    """Serialize a CSV row dictionary."""
     new_dict = {}
     for key, value in data.items():
         new_key = key
@@ -97,6 +99,9 @@ def serialize_ingest_data(
 
     None or missing values are ignored by Salesforce.
     To set a field in Salesforce to NULL, use the string "#N/A".
+    Relationships are represented as nested dictionaries,
+    with exactly one key-value pair. E.g. {"Account": {"Name": "Acme"}}
+    or {"Custom_Field__r": {"External_Id__c": "123"}.
 
     Parameters
     ----------
@@ -118,7 +123,7 @@ def serialize_ingest_data(
 
     Yields
     ------
-    Iterable[bytes]
+    bytes
         CSV file as a byte string.
 
     """
@@ -150,3 +155,22 @@ def serialize_ingest_data(
 
     if buffer.size > 0:
         yield buffer.content
+
+
+def deserialize_ingest_results(data: bytes) -> list[dict[str, Any]]:
+    """
+    Deserialize Salesforce Bulk API 2.0 ingest results from CSV.
+
+    Parameters
+    ----------
+    data : bytes
+        CSV file as a byte string.
+
+    Returns
+    -------
+    list[dict[str, Any]]
+        List of records as dictionaries.
+
+    """
+    reader = csv.DictReader(data.decode("utf-8").splitlines())
+    return list(reader)

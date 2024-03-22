@@ -5,12 +5,13 @@ import re
 import warnings
 
 from functools import cached_property, wraps
-from typing import AsyncIterator, Awaitable, Callable
+from typing import AsyncIterator, Awaitable, Callable, NoReturn
 
 import httpx
 
 from aiosalesforce import __version__
 from aiosalesforce.auth import Auth
+from aiosalesforce.bulk import BulkClientV2
 from aiosalesforce.events import (
     Event,
     EventBus,
@@ -225,10 +226,10 @@ class Salesforce:
         include_all_records : bool, default False
             If True, includes all (active/deleted/archived) records.
 
-        Returns
+        Yields
         -------
-        AsyncIterator[dict]
-            An asynchronous iterator of query results.
+        dict
+            Query result record.
 
         """
         operation = "query" if not include_all_records else "queryAll"
@@ -259,3 +260,23 @@ class Salesforce:
 
         """
         return SobjectClient(self)
+
+    @cached_property
+    def bulk_v1(self) -> NoReturn:
+        """
+        Get Salesforce Bulk API 1.0 client.
+
+        Use this client to execute bulk ingest and query operations.
+
+        """
+        raise NotImplementedError("Bulk API v1 is currently not supported")
+
+    @cached_property
+    def bulk_v2(self) -> BulkClientV2:
+        """
+        Get Salesforce Bulk API 2.0 client.
+
+        Use this client to execute bulk ingest and query operations.
+
+        """
+        return BulkClientV2(self)

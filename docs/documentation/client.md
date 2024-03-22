@@ -249,6 +249,18 @@ async def log_retries(event: Event):
             pass
 ```
 
+#### Log Requests
+
+```python
+from aiosalesforce import Event, RequestEvent
+
+
+async def log_requests(event: Event):
+    match event:
+        case RequestEvent():
+            logger.info("%s %s", event.request.method, event.request.url)
+```
+
 ### Best Practices
 
 - Use asynchronous functions if you make asynchronous IO operations and synchronous
