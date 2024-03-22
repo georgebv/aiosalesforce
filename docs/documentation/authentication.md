@@ -93,7 +93,8 @@ class and implementing the `_acquire_new_access_token` and
 When implementing custom authentication, you are responsible for emitting appropriate
 events using the provided
 [`EventBus`](../api-reference/events.md#aiosalesforce.events.EventBus)
-instance.
+instance and handling retries using the provided
+[`RetryPolicy`](../api-reference/retries.md#aiosalesforce.retry.RetryPolicy).
 
 ```python
 from aiosalesforce.auth import Auth
@@ -110,6 +111,7 @@ class MyAuth(Auth):
         base_url: str,
         version: str,
         event_bus: EventBus,
+        retry_policy: RetryPolicy,
     ) -> str:
         # Your custom logic to acquire new access token
         ...
@@ -120,6 +122,7 @@ class MyAuth(Auth):
         base_url: str,
         version: str,
         event_bus: EventBus,
+        retry_policy: RetryPolicy,
     ) -> str:
         # Your custom logic to refresh access token
         ...
