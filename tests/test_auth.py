@@ -11,6 +11,7 @@ import time_machine
 from aiosalesforce.auth import Auth, ClientCredentialsFlow, SoapLogin
 from aiosalesforce.events import EventBus
 from aiosalesforce.exceptions import AuthenticationError
+from aiosalesforce.retries import RetryPolicy
 
 
 class TestBaseAuth:
@@ -20,6 +21,8 @@ class TestBaseAuth:
         func.return_value = "test-token"
         httpx_client = MagicMock()
         event_bus = EventBus()
+        retry_policy = RetryPolicy()
+        semaphore = asyncio.Semaphore(100)
         auth = type("CustomAuth", (Auth,), {"_acquire_new_access_token": func})()
         tokens = await asyncio.gather(
             *[
@@ -28,6 +31,8 @@ class TestBaseAuth:
                     base_url="https://example.com",
                     version="60.0",
                     event_bus=event_bus,
+                    retry_policy=retry_policy,
+                    semaphore=semaphore,
                 )
                 for _ in range(10)
             ],
@@ -40,6 +45,7 @@ class TestBaseAuth:
             base_url="https://example.com",
             version="60.0",
             event_bus=event_bus,
+            retry_policy=retry_policy,
         )
 
     async def test_refresh_access_token_error(self):
@@ -54,6 +60,8 @@ class TestBaseAuth:
                 base_url="https://example.com",
                 version="60.0",
                 event_bus=EventBus(),
+                retry_policy=RetryPolicy(),
+                semaphore=asyncio.Semaphore(),
             )
 
     async def test_refresh_access_token_concurrent(self):
@@ -64,6 +72,8 @@ class TestBaseAuth:
         refresh_func.return_value = "test-token-after"
         httpx_client = MagicMock()
         event_bus = EventBus()
+        retry_policy = RetryPolicy()
+        semaphore = asyncio.Semaphore(100)
         auth = type(
             "CustomAuth",
             (Auth,),
@@ -79,6 +89,8 @@ class TestBaseAuth:
             base_url="https://example.com",
             version="60.0",
             event_bus=event_bus,
+            retry_policy=retry_policy,
+            semaphore=semaphore,
         )
         assert token == "test-token-before"  # noqa: S105
         get_func.assert_awaited_once_with(
@@ -86,6 +98,7 @@ class TestBaseAuth:
             base_url="https://example.com",
             version="60.0",
             event_bus=event_bus,
+            retry_policy=retry_policy,
         )
 
         # To ensure all refreshes are concurrent lock is held until
@@ -101,6 +114,8 @@ class TestBaseAuth:
                             base_url="https://example.com",
                             version="60.0",
                             event_bus=event_bus,
+                            retry_policy=retry_policy,
+                            semaphore=semaphore,
                         ),
                     )
                 )
@@ -117,6 +132,7 @@ class TestBaseAuth:
             base_url="https://example.com",
             version="60.0",
             event_bus=event_bus,
+            retry_policy=retry_policy,
         )
 
 
@@ -139,6 +155,8 @@ class TestSoapLogin:
             base_url=config["base_url"],
             version=config["api_version"],
             event_bus=event_bus,
+            retry_policy=RetryPolicy(),
+            semaphore=asyncio.Semaphore(),
         )
         assert received_session_id == mock_soap_login
         assert event_hook.await_count == 3
@@ -159,6 +177,8 @@ class TestSoapLogin:
             base_url=config["base_url"],
             version=config["api_version"],
             event_bus=EventBus(),
+            retry_policy=RetryPolicy(),
+            semaphore=asyncio.Semaphore(),
         )
         assert auth._expiration_time is not None
         assert auth._expiration_time > time.time()
@@ -173,6 +193,8 @@ class TestSoapLogin:
                 base_url=config["base_url"],
                 version=config["api_version"],
                 event_bus=EventBus(),
+                retry_policy=RetryPolicy(),
+                semaphore=asyncio.Semaphore(),
             )
             assert not auth.expired
 
@@ -196,6 +218,8 @@ class TestSoapLogin:
                 base_url=config["base_url"],
                 version=config["api_version"],
                 event_bus=EventBus(),
+                retry_policy=RetryPolicy(),
+                semaphore=asyncio.Semaphore(),
             )
 
 
@@ -239,6 +263,8 @@ class TestClientCredentialsFlow:
             base_url=config["base_url"],
             version=config["api_version"],
             event_bus=event_bus,
+            retry_policy=RetryPolicy(),
+            semaphore=asyncio.Semaphore(),
         )
         assert access_token == expected_access_token
         assert not auth.expired
@@ -281,4 +307,6 @@ class TestClientCredentialsFlow:
                 base_url=config["base_url"],
                 version=config["api_version"],
                 event_bus=EventBus(),
+                retry_policy=RetryPolicy(),
+                semaphore=asyncio.Semaphore(),
             )

@@ -1,3 +1,5 @@
+import asyncio
+import itertools
 import re
 import textwrap
 import time
@@ -10,8 +12,10 @@ from aiosalesforce.events import (
     RequestEvent,
     ResponseEvent,
     RestApiCallConsumptionEvent,
+    RetryEvent,
 )
 from aiosalesforce.exceptions import AuthenticationError
+from aiosalesforce.retries import RetryPolicy
 
 
 class SoapLogin(Auth):
@@ -50,6 +54,7 @@ class SoapLogin(Auth):
         base_url: str,
         version: str,
         event_bus: EventBus,
+        retry_policy: RetryPolicy,
     ) -> str:
         soap_xml_payload = f"""
         <?xml version="1.0" encoding="utf-8" ?>
@@ -76,14 +81,48 @@ class SoapLogin(Auth):
             },
         )
         await event_bus.publish_event(RequestEvent(type="request", request=request))
-        response = await client.send(request)
-        await event_bus.publish_event(
-            RestApiCallConsumptionEvent(
-                type="rest_api_call_consumption",
-                response=response,
-                count=1,
+        retry_context = retry_policy.create_context()
+        for attempt in itertools.count():
+            try:
+                response = await client.send(request)
+            except Exception as exc:
+                if await retry_context.should_retry(exc):
+                    await asyncio.gather(
+                        retry_policy.sleep(attempt),
+                        event_bus.publish_event(
+                            RetryEvent(
+                                type="retry",
+                                attempt=attempt + 1,
+                                request=request,
+                                exception=exc,
+                            )
+                        ),
+                    )
+                    continue
+                raise
+            await event_bus.publish_event(
+                RestApiCallConsumptionEvent(
+                    type="rest_api_call_consumption",
+                    response=response,
+                    count=1,
+                )
             )
-        )
+            if response.is_success:
+                break
+            if await retry_context.should_retry(response):
+                await asyncio.gather(
+                    retry_policy.sleep(attempt),
+                    event_bus.publish_event(
+                        RetryEvent(
+                            type="retry",
+                            attempt=attempt + 1,
+                            request=request,
+                            response=response,
+                        )
+                    ),
+                )
+                continue
+            break
         response_text = response.text
         if not response.is_success:
             try:

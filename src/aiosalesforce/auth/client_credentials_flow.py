@@ -1,3 +1,6 @@
+import asyncio
+import itertools
+
 from httpx import AsyncClient
 
 from aiosalesforce.auth.base import Auth
@@ -6,8 +9,10 @@ from aiosalesforce.events import (
     RequestEvent,
     ResponseEvent,
     RestApiCallConsumptionEvent,
+    RetryEvent,
 )
 from aiosalesforce.exceptions import AuthenticationError
+from aiosalesforce.retries import RetryPolicy
 from aiosalesforce.utils import json_loads
 
 
@@ -37,6 +42,7 @@ class ClientCredentialsFlow(Auth):
         base_url: str,
         version: str,
         event_bus: EventBus,
+        retry_policy: RetryPolicy,
     ) -> str:
         del version  # not used in this flow (this line is for linter)
         request = client.build_request(
@@ -52,14 +58,48 @@ class ClientCredentialsFlow(Auth):
             },
         )
         await event_bus.publish_event(RequestEvent(type="request", request=request))
-        response = await client.send(request)
-        await event_bus.publish_event(
-            RestApiCallConsumptionEvent(
-                type="rest_api_call_consumption",
-                response=response,
-                count=1,
+        retry_context = retry_policy.create_context()
+        for attempt in itertools.count():
+            try:
+                response = await client.send(request)
+            except Exception as exc:
+                if await retry_context.should_retry(exc):
+                    await asyncio.gather(
+                        retry_policy.sleep(attempt),
+                        event_bus.publish_event(
+                            RetryEvent(
+                                type="retry",
+                                attempt=attempt + 1,
+                                request=request,
+                                exception=exc,
+                            )
+                        ),
+                    )
+                    continue
+                raise
+            await event_bus.publish_event(
+                RestApiCallConsumptionEvent(
+                    type="rest_api_call_consumption",
+                    response=response,
+                    count=1,
+                )
             )
-        )
+            if response.is_success:
+                break
+            if await retry_context.should_retry(response):
+                await asyncio.gather(
+                    retry_policy.sleep(attempt),
+                    event_bus.publish_event(
+                        RetryEvent(
+                            type="retry",
+                            attempt=attempt + 1,
+                            request=request,
+                            response=response,
+                        )
+                    ),
+                )
+                continue
+            break
         if not response.is_success:
             try:
                 response_json = json_loads(response.content)

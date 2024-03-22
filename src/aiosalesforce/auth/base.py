@@ -7,6 +7,7 @@ from typing import final
 from httpx import AsyncClient
 
 from aiosalesforce.events import EventBus
+from aiosalesforce.retries import RetryPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,8 @@ class Auth(ABC):
         base_url: str,
         version: str,
         event_bus: EventBus,
+        retry_policy: RetryPolicy,
+        semaphore: asyncio.Semaphore,
     ) -> str:
         """
         Get access token.
@@ -47,6 +50,10 @@ class Auth(ABC):
             E.g., "57.0".
         event_bus : aiosalesforce.events.EventBus
             Event bus.
+        retry_policy : aiosalesforce.retries.RetryPolicy
+            Retry policy.
+        semaphore : asyncio.Semaphore
+            Semaphore to limit the number of simultaneous requests.
 
         Returns
         -------
@@ -61,24 +68,28 @@ class Auth(ABC):
                     self.__class__.__name__,
                     base_url,
                 )
-                self.__access_token = await self._acquire_new_access_token(
-                    client=client,
-                    base_url=base_url,
-                    version=version,
-                    event_bus=event_bus,
-                )
+                async with semaphore:
+                    self.__access_token = await self._acquire_new_access_token(
+                        client=client,
+                        base_url=base_url,
+                        version=version,
+                        event_bus=event_bus,
+                        retry_policy=retry_policy,
+                    )
             elif self.expired:
                 logger.debug(
                     "Token expired, refreshing access token using %s for %s",
                     self.__class__.__name__,
                     base_url,
                 )
-                self.__access_token = await self._refresh_access_token(
-                    client=client,
-                    base_url=base_url,
-                    version=version,
-                    event_bus=event_bus,
-                )
+                async with semaphore:
+                    self.__access_token = await self._refresh_access_token(
+                        client=client,
+                        base_url=base_url,
+                        version=version,
+                        event_bus=event_bus,
+                        retry_policy=retry_policy,
+                    )
             return self.__access_token
 
     @final
@@ -88,6 +99,8 @@ class Auth(ABC):
         base_url: str,
         version: str,
         event_bus: EventBus,
+        retry_policy: RetryPolicy,
+        semaphore: asyncio.Semaphore,
     ) -> str:
         """
         Refresh the access token.
@@ -104,6 +117,10 @@ class Auth(ABC):
             E.g., "57.0".
         event_bus : aiosalesforce.events.EventBus
             Event bus.
+        retry_policy : aiosalesforce.retries.RetryPolicy
+            Retry policy.
+        semaphore : asyncio.Semaphore
+            Semaphore to limit the number of simultaneous requests.
 
         Returns
         -------
@@ -121,12 +138,14 @@ class Auth(ABC):
                     self.__class__.__name__,
                     base_url,
                 )
-                self.__access_token = await self._refresh_access_token(
-                    client=client,
-                    base_url=base_url,
-                    version=version,
-                    event_bus=event_bus,
-                )
+                async with semaphore:
+                    self.__access_token = await self._refresh_access_token(
+                        client=client,
+                        base_url=base_url,
+                        version=version,
+                        event_bus=event_bus,
+                        retry_policy=retry_policy,
+                    )
             return self.__access_token
 
     @abstractmethod
@@ -136,6 +155,7 @@ class Auth(ABC):
         base_url: str,
         version: str,
         event_bus: EventBus,
+        retry_policy: RetryPolicy,
     ) -> str:
         """
         Acquire a new access token from Salesforce.
@@ -152,6 +172,8 @@ class Auth(ABC):
             E.g., "57.0".
         event_bus : aiosalesforce.events.EventBus
             Event bus.
+        retry_policy : aiosalesforce.retries.RetryPolicy
+            Retry policy.
 
         Returns
         -------
@@ -166,6 +188,7 @@ class Auth(ABC):
         base_url: str,
         version: str,
         event_bus: EventBus,
+        retry_policy: RetryPolicy,
     ) -> str:
         """
         Refresh the access token.
@@ -182,6 +205,8 @@ class Auth(ABC):
             E.g., "57.0".
         event_bus : aiosalesforce.events.EventBus
             Event bus.
+        retry_policy : aiosalesforce.retries.RetryPolicy
+            Retry policy.
 
         Returns
         -------
@@ -194,6 +219,7 @@ class Auth(ABC):
             base_url=base_url,
             version=version,
             event_bus=event_bus,
+            retry_policy=retry_policy,
         )
 
     @property

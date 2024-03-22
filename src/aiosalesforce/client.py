@@ -130,6 +130,8 @@ class Salesforce:
             base_url=self.base_url,
             version=self.version,
             event_bus=self.event_bus,
+            retry_policy=self.retry_policy,
+            semaphore=self.__semaphore,
         )
         request.headers.update(
             {
@@ -181,6 +183,8 @@ class Salesforce:
                     base_url=self.base_url,
                     version=self.version,
                     event_bus=self.event_bus,
+                    retry_policy=self.retry_policy,
+                    semaphore=self.__semaphore,
                 )
                 request.headers["Authorization"] = f"Bearer {access_token}"
                 refreshed = True
