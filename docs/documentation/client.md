@@ -131,6 +131,13 @@ or by checking the type of the event object.
     information (for example, authentication responses) - in such cases,
     these attributes will have value `None`.
 
+!!! warning "Warning"
+
+    `BulkApiBatchConsumptionEvent` is best-effort and is not guaranteed to accurately
+    reflect the number of consumed batches when using Bulk API 2.0. This is because
+    Salesforce does not provide a way to track the number of consumed batches and
+    `aiosalesforce` uses heuristics to estimate the number of consumed batches.
+
 ### Callback Function
 
 The callback function will receive an event object as the only argument. You cannot

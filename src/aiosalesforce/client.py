@@ -5,7 +5,7 @@ import re
 import warnings
 
 from functools import cached_property, wraps
-from typing import AsyncIterator, Awaitable, Callable, NoReturn
+from typing import Any, AsyncIterator, Awaitable, Callable, NoReturn
 
 import httpx
 
@@ -210,6 +210,21 @@ class Salesforce:
             ResponseEvent(type="response", response=response)
         )
         return response
+
+    async def get_limits(self) -> dict[str, Any]:
+        """
+        Get Salesforce org limits.
+
+        Returns
+        -------
+        dict
+            Salesforce org limits.
+
+        """
+        response = await self.request(
+            "GET", f"{self.base_url}/services/data/v{self.version}/limits"
+        )
+        return json_loads(response.content)
 
     async def query(
         self,

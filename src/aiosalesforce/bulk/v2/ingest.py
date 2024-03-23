@@ -1,11 +1,13 @@
 import asyncio
 import dataclasses
 import datetime
+import math
 
 from typing import TYPE_CHECKING, Any, AsyncIterator, Iterable, Literal, Self, TypeAlias
 
 from httpx import Response
 
+from aiosalesforce.events import BulkApiBatchConsumptionEvent
 from aiosalesforce.utils import json_dumps, json_loads
 
 from ._csv import deserialize_ingest_results, serialize_ingest_data
@@ -96,7 +98,7 @@ class BulkIngestClient:
 
     bulk_client: "BulkClientV2"
     base_url: str
-    """Base URL in the format https://[subdomain(s)].my.salesforce.com/services/data/v[version]/jobs/igest"""
+    """Base URL in the format https://[subdomain(s)].my.salesforce.com/services/data/v[version]/jobs/ingest"""
 
     def __init__(self, bulk_client: "BulkClientV2") -> None:
         self.bulk_client = bulk_client
@@ -284,6 +286,17 @@ class BulkIngestClient:
             f"{self.base_url}/{job_id}",
             content=json_dumps({"state": "UploadComplete"}),
             headers={"Content-Type": "application/json"},
+        )
+        await self.bulk_client.salesforce_client.event_bus.publish_event(
+            BulkApiBatchConsumptionEvent(
+                type="bulk_api_batch_consumption",
+                response=response,
+                # WARN Bulk API 2.0 does not provide a way to get the number of batches
+                #      consumed in a job. Number of batches is estimated based on the
+                #      Salesforce docs saying that a separate batch is created for every
+                #      10,000 records in data. First row is header and is not counted.
+                count=math.ceil((len(data.strip(b"\n").split(b"\n")) - 1) / 10_000),
+            )
         )
         return JobInfo.from_json(response.content)
 
