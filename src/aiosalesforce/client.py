@@ -1,5 +1,4 @@
 import asyncio
-import itertools
 import logging
 import re
 import warnings
@@ -17,8 +16,6 @@ from aiosalesforce.events import (
     EventBus,
     RequestEvent,
     ResponseEvent,
-    RestApiCallConsumptionEvent,
-    RetryEvent,
 )
 from aiosalesforce.exceptions import SalesforceWarning, raise_salesforce_error
 from aiosalesforce.retries import POLICY_DEFAULT, RetryPolicy
@@ -38,10 +35,10 @@ class Salesforce:
         HTTP client.
     base_url : str
         Base URL of the Salesforce instance.
-        Must be in the format:
-            Production    : https://[MyDomainName].my.salesforce.com
-            Sandbox       : https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com
-            Developer org : https://[MyDomainName].develop.my.salesforce.com
+        Must be in the format:\n
+        * Production    : https://[MyDomainName].my.salesforce.com
+        * Sandbox       : https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com
+        * Developer org : https://[MyDomainName].develop.my.salesforce.com\n
     auth : Auth
         Authentication object.
     version : str, optional
@@ -54,11 +51,11 @@ class Salesforce:
     retry_policy : RetryPolicy, optional
         Retry policy for requests.
         The default policy retries requests up to 3 times with exponential backoff
-        and retries the following:
-            httpx Transport errors (excluding timeouts)
-            Server errors (5xx)
-            Row lock errors
-            Rate limit errors
+        and retries the following:\n
+        * httpx Transport errors (excluding timeouts)
+        * Server errors (5xx)
+        * Row lock errors
+        * Rate limit errors\n
         Set to None to disable retries.
     concurrency_limit : int, optional
         Maximum number of simultaneous requests to Salesforce.
@@ -73,7 +70,7 @@ class Salesforce:
     version: str
     event_bus: EventBus
     retry_policy: RetryPolicy
-    __semaphore: asyncio.Semaphore
+    _semaphore: asyncio.Semaphore
 
     def __init__(
         self,
@@ -117,7 +114,7 @@ class Salesforce:
 
         self.event_bus = EventBus(event_hooks)
         self.retry_policy = retry_policy or RetryPolicy()
-        self.__semaphore = asyncio.Semaphore(concurrency_limit)
+        self._semaphore = asyncio.Semaphore(concurrency_limit)
 
     @wraps(httpx.AsyncClient.request)
     async def request(self, *args, **kwargs) -> httpx.Response:
@@ -126,14 +123,7 @@ class Salesforce:
 
         """
         request = self.httpx_client.build_request(*args, **kwargs)
-        access_token = await self.auth.get_access_token(
-            client=self.httpx_client,
-            base_url=self.base_url,
-            version=self.version,
-            event_bus=self.event_bus,
-            retry_policy=self.retry_policy,
-            semaphore=self.__semaphore,
-        )
+        access_token = await self.auth.get_access_token(self)
         request.headers.update(
             {
                 "Authorization": f"Bearer {access_token}",
@@ -145,64 +135,23 @@ class Salesforce:
         await self.event_bus.publish_event(
             RequestEvent(type="request", request=request)
         )
-
         retry_context = self.retry_policy.create_context()
-        refreshed: bool = False
-        for attempt in itertools.count():
-            try:
-                async with self.__semaphore:
-                    response = await self.httpx_client.send(request)
-            except Exception as exc:
-                if await retry_context.should_retry(exc):
-                    await asyncio.gather(
-                        self.retry_policy.sleep(attempt),
-                        self.event_bus.publish_event(
-                            RetryEvent(
-                                type="retry",
-                                attempt=attempt + 1,
-                                request=request,
-                                exception=exc,
-                            )
-                        ),
-                    )
-                    continue
-                raise
-            await self.event_bus.publish_event(
-                RestApiCallConsumptionEvent(
-                    type="rest_api_call_consumption",
-                    response=response,
-                    count=1,
-                )
+        response = await retry_context.send_request_with_retries(
+            httpx_client=self.httpx_client,
+            event_bus=self.event_bus,
+            semaphore=self._semaphore,
+            request=request,
+        )
+        if response.status_code == 401:
+            access_token = await self.auth.refresh_access_token(self)
+            request.headers["Authorization"] = f"Bearer {access_token}"
+            response = await retry_context.send_request_with_retries(
+                httpx_client=self.httpx_client,
+                event_bus=self.event_bus,
+                semaphore=self._semaphore,
+                request=request,
             )
-            if response.is_success:
-                break
-            if response.status_code == 401:
-                if refreshed:
-                    raise_salesforce_error(response)
-                access_token = await self.auth.refresh_access_token(
-                    client=self.httpx_client,
-                    base_url=self.base_url,
-                    version=self.version,
-                    event_bus=self.event_bus,
-                    retry_policy=self.retry_policy,
-                    semaphore=self.__semaphore,
-                )
-                request.headers["Authorization"] = f"Bearer {access_token}"
-                refreshed = True
-                continue
-            if await retry_context.should_retry(response):
-                await asyncio.gather(
-                    self.retry_policy.sleep(attempt),
-                    self.event_bus.publish_event(
-                        RetryEvent(
-                            type="retry",
-                            attempt=attempt + 1,
-                            request=request,
-                            response=response,
-                        )
-                    ),
-                )
-                continue
+        if not response.is_success:
             raise_salesforce_error(response)
         if "Warning" in response.headers:
             warnings.warn(response.headers["Warning"], SalesforceWarning)

@@ -292,67 +292,6 @@ class TestRequest:
         assert event_hook.await_count == 7
         assert sleep_mock.await_count == 3
 
-    async def test_expired_authentication_refresh(
-        self,
-        config: dict[str, str],
-        httpx_mock_router: respx.MockRouter,
-        salesforce: Salesforce,
-    ):
-        # Mock request
-        url = f"{config['base_url']}/some/path"
-        httpx_mock_router.get(url).mock(
-            side_effect=[
-                httpx.Response(status_code=401),
-                httpx.Response(status_code=200),
-            ],
-        )
-
-        # Subscribe a mock event hook
-        event_hook = AsyncMock()
-        salesforce.event_bus.subscribe_callback(event_hook)
-
-        # Execute request
-        response = await salesforce.request("GET", url)
-        assert response.status_code == 200
-
-        # Assert event hook was called:
-        # - 3 for auth (request, consumption, response)
-        # - 2 for initial failed request (request, consumption)
-        # - 3 for auth retry (request, consumption, response)
-        # - 2 for request (consumption, response)
-        assert event_hook.await_count == 10
-
-    async def test_expired_authentication_refresh_failure(
-        self,
-        config: dict[str, str],
-        httpx_mock_router: respx.MockRouter,
-        salesforce: Salesforce,
-    ):
-        """Authentication refresh is attempted only once, second attempt fails."""
-        # Mock request
-        url = f"{config['base_url']}/some/path"
-        httpx_mock_router.get(url).mock(
-            side_effect=[
-                httpx.Response(status_code=401),
-                httpx.Response(status_code=401),
-            ],
-        )
-
-        # Subscribe a mock event hook
-        event_hook = AsyncMock()
-        salesforce.event_bus.subscribe_callback(event_hook)
-
-        # Execute request
-        with pytest.raises(SalesforceError):
-            await salesforce.request("GET", url)
-
-        # Assert event hook was called:
-        # - 3 for auth (request, consumption, response)
-        # - 2 for initial failed request (request, consumption)
-        # - 3 for auth retry (request, consumption, response)
-        # - 1 for second failed request (consumption)
-        assert event_hook.await_count == 9
-
     async def test_retry_on_response(
         self,
         config: dict[str, str],
@@ -435,6 +374,67 @@ class TestRequest:
         # - 6 for retry (3 retry + 3 consumption)
         assert event_hook.await_count == 11
         assert sleep_mock.await_count == 3
+
+    async def test_expired_authentication_refresh(
+        self,
+        config: dict[str, str],
+        httpx_mock_router: respx.MockRouter,
+        salesforce: Salesforce,
+    ):
+        # Mock request
+        url = f"{config['base_url']}/some/path"
+        httpx_mock_router.get(url).mock(
+            side_effect=[
+                httpx.Response(status_code=401),
+                httpx.Response(status_code=200),
+            ],
+        )
+
+        # Subscribe a mock event hook
+        event_hook = AsyncMock()
+        salesforce.event_bus.subscribe_callback(event_hook)
+
+        # Execute request
+        response = await salesforce.request("GET", url)
+        assert response.status_code == 200
+
+        # Assert event hook was called:
+        # - 3 for auth (request, consumption, response)
+        # - 2 for initial failed request (request, consumption)
+        # - 3 for auth retry (request, consumption, response)
+        # - 2 for request (consumption, response)
+        assert event_hook.await_count == 10
+
+    async def test_expired_authentication_refresh_failure(
+        self,
+        config: dict[str, str],
+        httpx_mock_router: respx.MockRouter,
+        salesforce: Salesforce,
+    ):
+        """Authentication refresh is attempted only once, second attempt fails."""
+        # Mock request
+        url = f"{config['base_url']}/some/path"
+        httpx_mock_router.get(url).mock(
+            side_effect=[
+                httpx.Response(status_code=401),
+                httpx.Response(status_code=401),
+            ],
+        )
+
+        # Subscribe a mock event hook
+        event_hook = AsyncMock()
+        salesforce.event_bus.subscribe_callback(event_hook)
+
+        # Execute request
+        with pytest.raises(SalesforceError):
+            await salesforce.request("GET", url)
+
+        # Assert event hook was called:
+        # - 3 for auth (request, consumption, response)
+        # - 2 for initial failed request (request, consumption)
+        # - 3 for auth retry (request, consumption, response)
+        # - 1 for second failed request (consumption)
+        assert event_hook.await_count == 9
 
     async def test_salesforce_warning(
         self,

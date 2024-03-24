@@ -1,21 +1,19 @@
-import asyncio
-import itertools
 import re
 import textwrap
 import time
 
-from httpx import AsyncClient
+from typing import TYPE_CHECKING
 
-from aiosalesforce.auth.base import Auth
 from aiosalesforce.events import (
-    EventBus,
     RequestEvent,
     ResponseEvent,
-    RestApiCallConsumptionEvent,
-    RetryEvent,
 )
 from aiosalesforce.exceptions import AuthenticationError
-from aiosalesforce.retries import RetryPolicy
+
+from .base import Auth
+
+if TYPE_CHECKING:
+    from aiosalesforce.client import Salesforce
 
 
 class SoapLogin(Auth):
@@ -48,14 +46,7 @@ class SoapLogin(Auth):
 
         self._expiration_time: float | None = None
 
-    async def _acquire_new_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-        event_bus: EventBus,
-        retry_policy: RetryPolicy,
-    ) -> str:
+    async def _acquire_new_access_token(self, client: "Salesforce") -> str:
         soap_xml_payload = f"""
         <?xml version="1.0" encoding="utf-8" ?>
         <env:Envelope
@@ -70,9 +61,9 @@ class SoapLogin(Auth):
             </env:Body>
         </env:Envelope>
         """
-        request = client.build_request(
+        request = client.httpx_client.build_request(
             "POST",
-            f"{base_url}/services/Soap/u/{version}",
+            f"{client.base_url}/services/Soap/u/{client.version}",
             content=textwrap.dedent(soap_xml_payload).strip(),
             headers={
                 "Content-Type": "text/xml; charset=UTF-8",
@@ -80,49 +71,19 @@ class SoapLogin(Auth):
                 "Accept": "text/xml",
             },
         )
-        await event_bus.publish_event(RequestEvent(type="request", request=request))
-        retry_context = retry_policy.create_context()
-        for attempt in itertools.count():
-            try:
-                response = await client.send(request)
-            except Exception as exc:
-                if await retry_context.should_retry(exc):
-                    await asyncio.gather(
-                        retry_policy.sleep(attempt),
-                        event_bus.publish_event(
-                            RetryEvent(
-                                type="retry",
-                                attempt=attempt + 1,
-                                request=request,
-                                exception=exc,
-                            )
-                        ),
-                    )
-                    continue
-                raise
-            await event_bus.publish_event(
-                RestApiCallConsumptionEvent(
-                    type="rest_api_call_consumption",
-                    response=response,
-                    count=1,
-                )
+        await client.event_bus.publish_event(
+            RequestEvent(
+                type="request",
+                request=request,
             )
-            if response.is_success:
-                break
-            if await retry_context.should_retry(response):
-                await asyncio.gather(
-                    retry_policy.sleep(attempt),
-                    event_bus.publish_event(
-                        RetryEvent(
-                            type="retry",
-                            attempt=attempt + 1,
-                            request=request,
-                            response=response,
-                        )
-                    ),
-                )
-                continue
-            break
+        )
+        retry_context = client.retry_policy.create_context()
+        response = await retry_context.send_request_with_retries(
+            httpx_client=client.httpx_client,
+            event_bus=client.event_bus,
+            semaphore=client._semaphore,
+            request=request,
+        )
         response_text = response.text
         if not response.is_success:
             try:
@@ -173,7 +134,12 @@ class SoapLogin(Auth):
             except ValueError:  # pragma: no cover
                 pass
 
-        await event_bus.publish_event(ResponseEvent(type="response", response=response))
+        await client.event_bus.publish_event(
+            ResponseEvent(
+                type="response",
+                response=response,
+            )
+        )
         return session_id
 
     @property

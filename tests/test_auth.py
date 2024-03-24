@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import httpx
 import pytest
@@ -9,71 +9,62 @@ import respx
 import time_machine
 
 from aiosalesforce.auth import Auth, ClientCredentialsFlow, SoapLogin
+from aiosalesforce.client import Salesforce
 from aiosalesforce.events import EventBus
 from aiosalesforce.exceptions import AuthenticationError
 from aiosalesforce.retries import RetryPolicy
 
 
+@pytest.fixture(scope="function")
+def pseudo_client(config: dict[str, str], httpx_client: httpx.AsyncClient):
+    """Imitate a Salesforce client to test authentication."""
+    request_func = AsyncMock()
+    yield type(
+        "Salesforce",
+        (),
+        {
+            "httpx_client": httpx_client,
+            "base_url": config["base_url"],
+            # auth is not mocked because it's not used in these tests
+            "version": config["api_version"],
+            "event_bus": EventBus(),
+            "retry_policy": RetryPolicy(),
+            "_semaphore": asyncio.Semaphore(100),
+            "request": request_func,
+        },
+    )
+    request_func.assert_not_awaited()
+
+
 class TestBaseAuth:
-    async def test_get_access_token(self):
+    async def test_get_access_token(self, pseudo_client: Salesforce):
         """Token is acquired only once when called multiple times."""
         func = AsyncMock()
         func.return_value = "test-token"
-        httpx_client = MagicMock()
-        event_bus = EventBus()
-        retry_policy = RetryPolicy()
-        semaphore = asyncio.Semaphore(100)
         auth = type("CustomAuth", (Auth,), {"_acquire_new_access_token": func})()
         tokens = await asyncio.gather(
-            *[
-                auth.get_access_token(
-                    client=httpx_client,
-                    base_url="https://example.com",
-                    version="60.0",
-                    event_bus=event_bus,
-                    retry_policy=retry_policy,
-                    semaphore=semaphore,
-                )
-                for _ in range(10)
-            ],
+            *[auth.get_access_token(pseudo_client) for _ in range(10)],
         )
         assert len(tokens) == 10
         assert len(set(tokens)) == 1
         assert tokens[0] == "test-token"
-        func.assert_awaited_once_with(
-            client=httpx_client,
-            base_url="https://example.com",
-            version="60.0",
-            event_bus=event_bus,
-            retry_policy=retry_policy,
-        )
+        func.assert_awaited_once_with(pseudo_client)
 
-    async def test_refresh_access_token_error(self):
+    async def test_refresh_access_token_error(self, pseudo_client: Salesforce):
         auth = type(
             "CustomAuth",
             (Auth,),
             {"_acquire_new_access_token": lambda: "test"},
         )()
         with pytest.raises(RuntimeError, match="No access token to refresh"):
-            await auth.refresh_access_token(
-                client=MagicMock(),
-                base_url="https://example.com",
-                version="60.0",
-                event_bus=EventBus(),
-                retry_policy=RetryPolicy(),
-                semaphore=asyncio.Semaphore(),
-            )
+            await auth.refresh_access_token(pseudo_client)
 
-    async def test_refresh_access_token_concurrent(self):
+    async def test_refresh_access_token_concurrent(self, pseudo_client: Salesforce):
         """Token is refreshed only once when called multiple times concurrently."""
         get_func = AsyncMock()
         get_func.return_value = "test-token-before"
         refresh_func = AsyncMock()
         refresh_func.return_value = "test-token-after"
-        httpx_client = MagicMock()
-        event_bus = EventBus()
-        retry_policy = RetryPolicy()
-        semaphore = asyncio.Semaphore(100)
         auth = type(
             "CustomAuth",
             (Auth,),
@@ -84,22 +75,9 @@ class TestBaseAuth:
         )()
 
         # Get the token before refreshing it
-        token = await auth.get_access_token(
-            client=httpx_client,
-            base_url="https://example.com",
-            version="60.0",
-            event_bus=event_bus,
-            retry_policy=retry_policy,
-            semaphore=semaphore,
-        )
+        token = await auth.get_access_token(pseudo_client)
         assert token == "test-token-before"  # noqa: S105
-        get_func.assert_awaited_once_with(
-            client=httpx_client,
-            base_url="https://example.com",
-            version="60.0",
-            event_bus=event_bus,
-            retry_policy=retry_policy,
-        )
+        get_func.assert_awaited_once_with(pseudo_client)
 
         # To ensure all refreshes are concurrent lock is held until
         # all of the tasks are waiting for it
@@ -109,14 +87,7 @@ class TestBaseAuth:
             for _ in range(10):
                 tasks.append(
                     tg.create_task(
-                        auth.refresh_access_token(
-                            client=httpx_client,
-                            base_url="https://example.com",
-                            version="60.0",
-                            event_bus=event_bus,
-                            retry_policy=retry_policy,
-                            semaphore=semaphore,
-                        ),
+                        auth.refresh_access_token(pseudo_client),
                     )
                 )
             # Yield control to the event loop to allow the tasks to start
@@ -127,37 +98,24 @@ class TestBaseAuth:
         assert len(tokens) == 10
         assert len(set(tokens)) == 1
         assert tokens[0] == "test-token-after"
-        refresh_func.assert_awaited_once_with(
-            client=httpx_client,
-            base_url="https://example.com",
-            version="60.0",
-            event_bus=event_bus,
-            retry_policy=retry_policy,
-        )
+        refresh_func.assert_awaited_once_with(pseudo_client)
 
 
 class TestSoapLogin:
     async def test_soap_login(
         self,
         config: dict[str, str],
-        httpx_client: httpx.AsyncClient,
+        pseudo_client: Salesforce,
         mock_soap_login: str,
     ):
         event_hook = AsyncMock()
-        event_bus = EventBus([event_hook])
+        pseudo_client.event_bus.subscribe_callback(event_hook)
         auth = SoapLogin(
             username=config["username"],
             password=config["password"],
             security_token=config["security_token"],
         )
-        received_session_id = await auth.get_access_token(
-            client=httpx_client,
-            base_url=config["base_url"],
-            version=config["api_version"],
-            event_bus=event_bus,
-            retry_policy=RetryPolicy(),
-            semaphore=asyncio.Semaphore(),
-        )
+        received_session_id = await auth.get_access_token(pseudo_client)
         assert received_session_id == mock_soap_login
         assert event_hook.await_count == 3
 
@@ -165,21 +123,14 @@ class TestSoapLogin:
     async def test_soap_login_expiration(
         self,
         config: dict[str, str],
-        httpx_client: httpx.AsyncClient,
+        pseudo_client: Salesforce,
     ):
         auth = SoapLogin(
             username=config["username"],
             password=config["password"],
             security_token=config["security_token"],
         )
-        await auth.get_access_token(
-            client=httpx_client,
-            base_url=config["base_url"],
-            version=config["api_version"],
-            event_bus=EventBus(),
-            retry_policy=RetryPolicy(),
-            semaphore=asyncio.Semaphore(),
-        )
+        await auth.get_access_token(pseudo_client)
         assert auth._expiration_time is not None
         assert auth._expiration_time > time.time()
         assert not auth.expired
@@ -188,21 +139,14 @@ class TestSoapLogin:
             tick=False,
         ):
             assert auth.expired
-            await auth.get_access_token(
-                client=httpx_client,
-                base_url=config["base_url"],
-                version=config["api_version"],
-                event_bus=EventBus(),
-                retry_policy=RetryPolicy(),
-                semaphore=asyncio.Semaphore(),
-            )
+            await auth.get_access_token(pseudo_client)
             assert not auth.expired
 
     @pytest.mark.usefixtures("mock_soap_login")
     async def test_soap_login_invalid_credentials(
         self,
         config: dict[str, str],
-        httpx_client: httpx.AsyncClient,
+        pseudo_client: Salesforce,
     ):
         auth = SoapLogin(
             username=config["username"],
@@ -213,21 +157,14 @@ class TestSoapLogin:
             AuthenticationError,
             match=r"\[INVALID_LOGIN\] Invalid username, .*",
         ):
-            await auth.get_access_token(
-                client=httpx_client,
-                base_url=config["base_url"],
-                version=config["api_version"],
-                event_bus=EventBus(),
-                retry_policy=RetryPolicy(),
-                semaphore=asyncio.Semaphore(),
-            )
+            await auth.get_access_token(pseudo_client)
 
 
 class TestClientCredentialsFlow:
     async def test_client_credentials_flow(
         self,
         config: dict[str, str],
-        httpx_client: httpx.AsyncClient,
+        pseudo_client: Salesforce,
         httpx_mock_router: respx.MockRouter,
     ):
         expected_access_token = "SUPER-SECRET-ACCESS-TOKEN"  # noqa: S105
@@ -253,19 +190,12 @@ class TestClientCredentialsFlow:
         )
 
         event_hook = AsyncMock()
-        event_bus = EventBus([event_hook])
+        pseudo_client.event_bus.subscribe_callback(event_hook)
         auth = ClientCredentialsFlow(
             client_id="super-secret-client-id",
             client_secret="super-secret-client-secret",  # noqa: S106
         )
-        access_token = await auth.get_access_token(
-            client=httpx_client,
-            base_url=config["base_url"],
-            version=config["api_version"],
-            event_bus=event_bus,
-            retry_policy=RetryPolicy(),
-            semaphore=asyncio.Semaphore(),
-        )
+        access_token = await auth.get_access_token(pseudo_client)
         assert access_token == expected_access_token
         assert not auth.expired
         with time_machine.travel(
@@ -279,7 +209,7 @@ class TestClientCredentialsFlow:
     async def test_client_credentials_flow_invalid_credentials(
         self,
         config: dict[str, str],
-        httpx_client: httpx.AsyncClient,
+        pseudo_client: Salesforce,
         httpx_mock_router: respx.MockRouter,
     ):
         httpx_mock_router.post(
@@ -302,11 +232,4 @@ class TestClientCredentialsFlow:
             AuthenticationError,
             match=r"\[invalid_client_id\] client identifier invalid",
         ):
-            await auth.get_access_token(
-                client=httpx_client,
-                base_url=config["base_url"],
-                version=config["api_version"],
-                event_bus=EventBus(),
-                retry_policy=RetryPolicy(),
-                semaphore=asyncio.Semaphore(),
-            )
+            await auth.get_access_token(pseudo_client)

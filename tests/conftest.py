@@ -22,6 +22,7 @@ def config() -> dict[str, str]:
 
 @pytest.fixture(scope="function", autouse=True)
 def httpx_mock_router() -> Generator[respx.MockRouter, None, None]:
+    """Router used to intercept and mock httpx requests."""
     with respx.mock(
         assert_all_called=False,
         assert_all_mocked=True,

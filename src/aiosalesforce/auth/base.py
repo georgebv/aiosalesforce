@@ -2,14 +2,12 @@ import asyncio
 import logging
 
 from abc import ABC, abstractmethod
-from typing import final
-
-from httpx import AsyncClient
-
-from aiosalesforce.events import EventBus
-from aiosalesforce.retries import RetryPolicy
+from typing import TYPE_CHECKING, final
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from aiosalesforce.client import Salesforce
 
 
 class Auth(ABC):
@@ -23,15 +21,7 @@ class Auth(ABC):
         self.__lock = asyncio.Lock()
 
     @final
-    async def get_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-        event_bus: EventBus,
-        retry_policy: RetryPolicy,
-        semaphore: asyncio.Semaphore,
-    ) -> str:
+    async def get_access_token(self, client: "Salesforce") -> str:
         """
         Get access token.
 
@@ -40,20 +30,8 @@ class Auth(ABC):
 
         Parameters
         ----------
-        client : httpx.AsyncClient
-            HTTP client.
-        base_url : str
-            Salesforce base URL.
-            E.g., "https://mydomain.my.salesforce.com".
-        version : str
-            REST API version.
-            E.g., "57.0".
-        event_bus : aiosalesforce.events.EventBus
-            Event bus.
-        retry_policy : aiosalesforce.retries.RetryPolicy
-            Retry policy.
-        semaphore : asyncio.Semaphore
-            Semaphore to limit the number of simultaneous requests.
+        client : Salesforce
+            Salesforce client.
 
         Returns
         -------
@@ -66,61 +44,27 @@ class Auth(ABC):
                 logger.debug(
                     "Acquiring new access token using %s for %s",
                     self.__class__.__name__,
-                    base_url,
+                    client.base_url,
                 )
-                async with semaphore:
-                    self.__access_token = await self._acquire_new_access_token(
-                        client=client,
-                        base_url=base_url,
-                        version=version,
-                        event_bus=event_bus,
-                        retry_policy=retry_policy,
-                    )
+                self.__access_token = await self._acquire_new_access_token(client)
             elif self.expired:
                 logger.debug(
                     "Token expired, refreshing access token using %s for %s",
                     self.__class__.__name__,
-                    base_url,
+                    client.base_url,
                 )
-                async with semaphore:
-                    self.__access_token = await self._refresh_access_token(
-                        client=client,
-                        base_url=base_url,
-                        version=version,
-                        event_bus=event_bus,
-                        retry_policy=retry_policy,
-                    )
+                self.__access_token = await self._refresh_access_token(client)
             return self.__access_token
 
     @final
-    async def refresh_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-        event_bus: EventBus,
-        retry_policy: RetryPolicy,
-        semaphore: asyncio.Semaphore,
-    ) -> str:
+    async def refresh_access_token(self, client: "Salesforce") -> str:
         """
         Refresh the access token.
 
         Parameters
         ----------
-        client : httpx.AsyncClient
-            HTTP client.
-        base_url : str
-            Salesforce base URL.
-            E.g., "https://mydomain.my.salesforce.com".
-        version : str
-            REST API version.
-            E.g., "57.0".
-        event_bus : aiosalesforce.events.EventBus
-            Event bus.
-        retry_policy : aiosalesforce.retries.RetryPolicy
-            Retry policy.
-        semaphore : asyncio.Semaphore
-            Semaphore to limit the number of simultaneous requests.
+        client : Salesforce
+            Salesforce client.
 
         Returns
         -------
@@ -136,44 +80,22 @@ class Auth(ABC):
                 logger.debug(
                     "Refreshing access token using %s for %s",
                     self.__class__.__name__,
-                    base_url,
+                    client.base_url,
                 )
-                async with semaphore:
-                    self.__access_token = await self._refresh_access_token(
-                        client=client,
-                        base_url=base_url,
-                        version=version,
-                        event_bus=event_bus,
-                        retry_policy=retry_policy,
-                    )
+                self.__access_token = await self._refresh_access_token(client)
             return self.__access_token
 
     @abstractmethod
-    async def _acquire_new_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-        event_bus: EventBus,
-        retry_policy: RetryPolicy,
-    ) -> str:
+    async def _acquire_new_access_token(self, client: "Salesforce") -> str:
         """
         Acquire a new access token from Salesforce.
 
+        Implementation is responsible for emitting RequestEvent and ResponseEvent.
+
         Parameters
         ----------
-        client : httpx.AsyncClient
-            HTTP client.
-        base_url : str
-            Salesforce base URL.
-            E.g., "https://mydomain.my.salesforce.com".
-        version : str
-            REST API version.
-            E.g., "57.0".
-        event_bus : aiosalesforce.events.EventBus
-            Event bus.
-        retry_policy : aiosalesforce.retries.RetryPolicy
-            Retry policy.
+        client : Salesforce
+            Salesforce client.
 
         Returns
         -------
@@ -182,31 +104,16 @@ class Auth(ABC):
 
         """
 
-    async def _refresh_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-        event_bus: EventBus,
-        retry_policy: RetryPolicy,
-    ) -> str:
+    async def _refresh_access_token(self, client: "Salesforce") -> str:
         """
         Refresh the access token.
 
+        Implementation is responsible for emitting RequestEvent and ResponseEvent.
+
         Parameters
         ----------
-        client : httpx.AsyncClient
-            HTTP client.
-        base_url : str
-            Salesforce base URL.
-            E.g., "https://mydomain.my.salesforce.com".
-        version : str
-            REST API version.
-            E.g., "57.0".
-        event_bus : aiosalesforce.events.EventBus
-            Event bus.
-        retry_policy : aiosalesforce.retries.RetryPolicy
-            Retry policy.
+        client : Salesforce
+            Salesforce client.
 
         Returns
         -------
@@ -214,13 +121,7 @@ class Auth(ABC):
             Access token
 
         """
-        return await self._acquire_new_access_token(
-            client=client,
-            base_url=base_url,
-            version=version,
-            event_bus=event_bus,
-            retry_policy=retry_policy,
-        )
+        return await self._acquire_new_access_token(client)
 
     @property
     def expired(self) -> bool:
