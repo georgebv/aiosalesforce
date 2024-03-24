@@ -1,5 +1,4 @@
 import asyncio
-import functools
 
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
@@ -8,20 +7,13 @@ import pytest
 import respx
 import time_machine
 
-from aiosalesforce import (
+from aiosalesforce.events import EventBus, RestApiCallConsumptionEvent
+from aiosalesforce.exceptions import SalesforceError
+from aiosalesforce.retries import (
     ExceptionRule,
-    RequestEvent,
-    ResponseEvent,
     ResponseRule,
-    RestApiCallConsumptionEvent,
     RetryPolicy,
-    Salesforce,
 )
-from aiosalesforce.auth import SoapLogin
-from aiosalesforce.client import Salesforce
-from aiosalesforce.events import EventBus
-from aiosalesforce.exceptions import SalesforceError, SalesforceWarning, ServerError
-from aiosalesforce.retries import ExceptionRule, ResponseRule, RetryPolicy
 from httpx import Response
 
 
