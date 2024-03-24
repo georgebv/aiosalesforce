@@ -232,9 +232,6 @@ def track_api_usage(event: Event):
                     },
                 ],
             )
-        case _:
-            # Do nothing for other events
-            pass
 ```
 
 #### Log Retries
@@ -251,9 +248,6 @@ async def log_retries(event: Event):
                 f"due to: {event.response or type(event.exception).__name__}. "
                 f"This is attempt {event.attempt}"
             )
-        case _:
-            # Do nothing for other events
-            pass
 ```
 
 #### Log Requests

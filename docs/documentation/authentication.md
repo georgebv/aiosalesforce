@@ -86,54 +86,80 @@ auth = ClientCredentials(
 ## Custom Authentication
 
 You can create a custom authentication class by subclassing the
-[`Auth`](../api-reference/auth.md#aiosalesforce.auth.Auth)
-class and implementing the `_acquire_new_access_token` and
-(optionally) the `_refresh_access_token` methods.
+[`Auth`](../api-reference/auth.md#aiosalesforce.auth.Auth) class.
 
-When implementing custom authentication, you are responsible for emitting appropriate
-events using the provided
-[`EventBus`](../api-reference/events.md#aiosalesforce.events.EventBus)
-instance and handling retries using the provided
-[`RetryPolicy`](../api-reference/retries.md#aiosalesforce.retry.RetryPolicy).
+You must implement the `_acquire_new_access_token` method which is responsible
+for acquiring a new access token. This doesn't mean that you have to acquire a new
+access token from Salesforce - only that calling this method should return a new
+access token each time it is called. Examples of behavior:
+
+- Fetch new token directly from Salesforce
+- Fetch token from some service (e.g., centralized authentication service)
+- Fetch token from cache and, if cache is empty/expired, fetch new token from Salesforce
+  and update cache
+
+You can optionally implement the `_refresh_access_token` method which is responsible
+for refreshing the access token. If you don't implement this method, the
+`_acquire_new_access_token` method will be called instead.
+
+You can implement expiration mechanism by implementing the `expired` property in your
+custom authentication class. This property should return a boolean value indicating
+whether the access token has expired. Auth class will call the `_refresh_access_token`
+method when the access token expires. By default the `expired` property always returns
+`False`. You can declare whatever class attributes you need to implement the expiration
+mechanism.
+
+!!! warning "Warning"
+
+    When implementing custom authentication, you are responsible for emitting
+    [`RequestEvent`](../api-reference/events.md#aiosalesforce.events.RequestEvent)
+    and
+    [`ResponseEvent`](../api-reference/events.md#aiosalesforce.events.ResponseEvent)
+    events using
+    [`client.event_bus.publish_event`](../api-reference/events.md#aiosalesforce.events.EventBus.publish_event)
+    method.
 
 ```python
 from aiosalesforce.auth import Auth
 
 
 class MyAuth(Auth):
-    def __init__(self):
+    def __init__(
+        self,
+        # Your custom arguments
+        ...
+    ):
         super().__init__()
         # Your custom initialization logic
+        ...
 
-    async def _acquire_new_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-        event_bus: EventBus,
-        retry_policy: RetryPolicy,
-    ) -> str:
+    async def _acquire_new_access_token(self, client: Salesforce) -> str:
         # Your custom logic to acquire new access token
         ...
 
-    async def _refresh_access_token(
-        self,
-        client: AsyncClient,
-        base_url: str,
-        version: str,
-        event_bus: EventBus,
-        retry_policy: RetryPolicy,
-    ) -> str:
+    async def _refresh_access_token(self, client: Salesforce) -> str:
         # Your custom logic to refresh access token
+        ...
+
+    @property
+    def expired(self) -> bool:
+        # Your custom logic to check if access token has expired
         ...
 ```
 
+!!! warning "Warning"
+
+    You must follow these rules when making HTTP requests from your custom
+    authentication class:
+
+    - Requets to Salesforce must be made using the
+    [`client.retry_policy.send_request_with_retries`](../api-reference/retries.md#aiosalesforce.retries.policy.RetryContext.send_request_with_retries) method
+    - Requests to other services must be made using the `client.httpx_client` attribute
+
+    **Under no circumstances** should you make HTTP
+    requests using the `client.request` method - this method calls authentication
+    methods and can lead to infinite recursion.
+
 You can request any arguments in the `__init__` method of your custom authentication
-class. The `__init__` method should call the `super().__init__()` method to initialize
+class. The `__init__` method must call the `super().__init__()` method to initialize
 the base class. After that, you can declare whatever attributes and methods you need.
-
-The `_acquire_new_access_token` method is required.
-
-The `_refresh_access_token` method is optional. By default it calls the
-`_acquire_new_access_token` method (meaning, you acquire a new access token every time
-the old one expires or becomes invalid).

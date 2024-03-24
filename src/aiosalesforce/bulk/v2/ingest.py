@@ -26,6 +26,8 @@ OperationType: TypeAlias = Literal[
 
 @dataclasses.dataclass
 class JobInfo:
+    """Bulk API 2.0 ingest job information."""
+
     id: str
     operation: str
     object: str
@@ -76,6 +78,8 @@ class JobInfo:
 
 @dataclasses.dataclass
 class JobResult:
+    """Bulk API 2.0 ingest job result."""
+
     job_info: JobInfo
     successful_results: list[dict[str, Any]]
     failed_results: list[dict[str, Any]]

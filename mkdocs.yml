@@ -14,11 +14,15 @@ nav:
       - Salesforce Client: documentation/client.md
       # TODO SOQL Queries
       # TODO Sobject Client
+      # TODO Bulk API Client
       # TODO Handling Exceptions
   - API Reference:
       - Authentication: api-reference/auth.md
       - Salesforce Client: api-reference/client.md
       - Sobject Client: api-reference/sobject.md
+      - Bulk API 2.0:
+          - Client: api-reference/bulk/v2/client.md
+          - Ingest Client: api-reference/bulk/v2/ingest.md
       - Events: api-reference/events.md
       - Retries: api-reference/retries.md
       - Exceptions: api-reference/exceptions.md

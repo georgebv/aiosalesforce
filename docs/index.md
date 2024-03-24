@@ -177,7 +177,7 @@ from aiosalesforce import Salesforce
 from aiosalesforce.auth import SoapLogin
 from httpx import AsyncClient
 
-# Reuse authentication session across multiple clients (refreshes automatically)
+# Reuse authentication session across multiple clients (refreshes automagically)
 auth = SoapLogin(
     username="your-username",
     password="your-password",
