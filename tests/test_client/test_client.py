@@ -467,6 +467,26 @@ class TestRequest:
         assert event_hook.await_count == 6
 
 
+async def test_get_limits(
+    httpx_mock_router: respx.MockRouter,
+    salesforce: Salesforce,
+):
+    # Mock request
+    expected_response = {"test": {"get": "limits"}}
+    httpx_mock_router.get(
+        f"{salesforce.base_url}/services/data/v{salesforce.version}/limits",
+    ).mock(
+        return_value=httpx.Response(
+            status_code=200,
+            json=expected_response,
+        ),
+    )
+
+    # Execute request
+    response = await salesforce.get_limits()
+    assert response == expected_response
+
+
 class TestSoql:
     @pytest.mark.parametrize(
         "expected_records",
