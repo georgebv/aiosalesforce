@@ -4,7 +4,7 @@ import re
 import warnings
 
 from functools import cached_property, wraps
-from typing import Any, AsyncIterator, Awaitable, Callable, NoReturn
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterable, NoReturn
 
 import httpx
 
@@ -44,8 +44,8 @@ class Salesforce:
     version : str, optional
         Salesforce API version.
         By default, uses the latest version.
-    event_hooks : list[Callable[[Event], Awaitable[None] | None]], optional
-        List of functions or coroutines executed when an event occurs.
+    event_hooks : Iterable[Callable[[Event], Awaitable[None] | None]], optional
+        Functions or coroutines executed when an event occurs.
         Hooks are executed concurrently and order of execution is not guaranteed.
         All hooks must be thread-safe.
     retry_policy : RetryPolicy, optional
@@ -78,7 +78,7 @@ class Salesforce:
         base_url: str,
         auth: Auth,
         version: str = "60.0",
-        event_hooks: list[Callable[[Event], Awaitable[None] | None]] | None = None,
+        event_hooks: Iterable[Callable[[Event], Awaitable[None] | None]] | None = None,
         retry_policy: RetryPolicy | None = POLICY_DEFAULT,
         concurrency_limit: int = 100,
     ) -> None:

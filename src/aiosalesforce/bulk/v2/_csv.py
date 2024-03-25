@@ -1,7 +1,7 @@
 import csv
 import datetime
 
-from typing import Any, Iterable
+from typing import Any, Collection, Iterable
 
 
 class CsvBuffer:
@@ -90,7 +90,7 @@ def _serialize_dict(data: dict[str, Any]) -> dict[str, str]:
 
 def serialize_ingest_data(
     data: Iterable[dict[str, Any]],
-    fieldnames: list[str] | None = None,
+    fieldnames: Collection[str] | None = None,
     max_size_bytes: int = 100_000_000,
     max_records: int = 150_000_000,
 ) -> Iterable[bytes]:
@@ -107,8 +107,8 @@ def serialize_ingest_data(
     ----------
     data : Iterable[dict[str, Any]]
         Sequence of dictionaries, each representing a record.
-    fieldnames : list[str], optional
-        List of field names, determines order of fields in the CSV file.
+    fieldnames : Collection[str], optional
+        Field names, determines order of fields in the CSV file.
         By default field names are inferred from the records. This is slow, so
         if you know the field names in advance, it is recommended to provide them.
         If a record is missing a field, it will be written as an empty string.
@@ -128,10 +128,9 @@ def serialize_ingest_data(
 
     """
     if fieldnames is None:
-        _fields: set[str] = set()
+        fieldnames = set()
         for record in (_serialize_dict(record) for record in data):
-            _fields.update(record.keys())
-        fieldnames = list(_fields)
+            fieldnames.update(record.keys())
 
     buffer = CsvBuffer()
     writer = csv.DictWriter(

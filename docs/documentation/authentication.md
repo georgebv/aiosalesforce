@@ -143,6 +143,7 @@ class MyAuth(Auth):
 
     @property
     def expired(self) -> bool:
+        super().expired
         # Your custom logic to check if access token has expired
         ...
 ```

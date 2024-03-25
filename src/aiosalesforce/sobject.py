@@ -1,7 +1,7 @@
 import logging
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 from aiosalesforce.utils import json_dumps, json_loads
 
@@ -82,7 +82,7 @@ class SobjectClient:
         id_: str,
         /,
         external_id_field: str | None = None,
-        fields: list[str] | None = None,
+        fields: Iterable[str] | None = None,
     ) -> dict:
         """
         Get record by ID or external ID.
@@ -96,7 +96,7 @@ class SobjectClient:
             Salesforce record ID or external ID (if external_id_field is provided).
         external_id_field : str, optional
             External ID field name, by default None.
-        fields : list[str], optional
+        fields : Iterable[str], optional
             Fields to get for the record.
             By default returns all fields.
 

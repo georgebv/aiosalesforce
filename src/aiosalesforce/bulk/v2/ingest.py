@@ -3,7 +3,16 @@ import dataclasses
 import datetime
 import math
 
-from typing import TYPE_CHECKING, Any, AsyncIterator, Iterable, Literal, Self, TypeAlias
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncIterator,
+    Collection,
+    Iterable,
+    Literal,
+    Self,
+    TypeAlias,
+)
 
 from httpx import Response
 
@@ -91,7 +100,6 @@ class BulkIngestClient:
     Salesforce Bulk API 2.0 ingest client.
 
     This is a low-level client used to manage ingest jobs.
-
 
     Parameters
     ----------
@@ -321,8 +329,8 @@ class BulkIngestClient:
         )
         job = await self.upload_job_data(job.id, data)
         while job.state not in {"JobComplete", "Failed"}:
-            job = await self.get_job(job.id)
             await asyncio.sleep(polling_interval)
+            job = await self.get_job(job.id)
 
         tasks: list[asyncio.Task[Response]] = []
         async with asyncio.TaskGroup() as tg:
@@ -358,7 +366,7 @@ class BulkIngestClient:
         operation: OperationType,
         sobject: str,
         data: Iterable[dict[str, Any]],
-        fieldnames: list[str] | None = None,
+        fieldnames: Collection[str] | None = None,
         max_size_bytes: int = 100_000_000,
         max_records: int = 150_000_000,
         external_id_field: str | None = None,
@@ -376,8 +384,8 @@ class BulkIngestClient:
             Salesforce object name.
         data : Iterable[dict[str, Any]]
             Sequence of records to ingest.
-        fieldnames : list[str], optional
-            List of field names, determines order of fields in the CSV file.
+        fieldnames : Collection[str], optional
+            Field names, determines order of fields in the CSV file.
             By default field names are inferred from the records. This is slow, so
             if you know the field names in advance, it is recommended to provide them.
             If a record is missing a field, it will be written as an empty string.

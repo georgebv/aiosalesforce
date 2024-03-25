@@ -1,7 +1,7 @@
 import asyncio
 import inspect
 
-from typing import Awaitable, Callable, TypeAlias
+from typing import Awaitable, Callable, Iterable, TypeAlias
 
 from .events import Event
 
@@ -14,14 +14,14 @@ class EventBus:
 
     Parameters
     ----------
-    callbacks : list[Callable[[Event], Awaitable[None] | None]], optional
-        List of callbacks to subscribe to the event bus.
+    callbacks : Iterable[Callable[[Event], Awaitable[None] | None]], optional
+        Callbacks to subscribe to the event bus.
 
     """
 
     _callbacks: set[CallbackType]
 
-    def __init__(self, callbacks: list[CallbackType] | None = None) -> None:
+    def __init__(self, callbacks: Iterable[CallbackType] | None = None) -> None:
         self._callbacks = set()
         for callback in callbacks or []:
             self.subscribe_callback(callback)

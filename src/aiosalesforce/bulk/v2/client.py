@@ -2,7 +2,7 @@ import dataclasses
 import logging
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Iterable
 
 if TYPE_CHECKING:
     from aiosalesforce.client import Salesforce
@@ -58,7 +58,7 @@ class BulkClientV2:
         self,
         operation: OperationType,
         sobject: str,
-        data: list[dict[str, Any]],
+        data: Iterable[dict[str, Any]],
         external_id_field: str | None = None,
         assignment_rule_id: str | None = None,
     ) -> IngestResult:
@@ -79,7 +79,7 @@ class BulkClientV2:
     async def insert(
         self,
         sobject: str,
-        data: list[dict[str, Any]],
+        data: Iterable[dict[str, Any]],
         assignment_rule_id: str | None = None,
     ) -> IngestResult:
         """
@@ -89,7 +89,7 @@ class BulkClientV2:
         ----------
         sobject : str
             Salesforce object name.
-        data : list[dict[str, Any]]
+        data : Iterable[dict[str, Any]]
             Records to create.
         assignment_rule_id : str | None, default None
             The ID of an assignment rule to run for a Case or a Lead.
@@ -110,7 +110,7 @@ class BulkClientV2:
     async def update(
         self,
         sobject: str,
-        data: list[dict[str, Any]],
+        data: Iterable[dict[str, Any]],
         assignment_rule_id: str | None = None,
     ) -> IngestResult:
         """
@@ -120,7 +120,7 @@ class BulkClientV2:
         ----------
         sobject : str
             Salesforce object name.
-        data : list[dict[str, Any]]
+        data : Iterable[dict[str, Any]]
             Records to update.
         assignment_rule_id : str | None, default None
             The ID of an assignment rule to run for a Case or a Lead.
@@ -141,7 +141,7 @@ class BulkClientV2:
     async def upsert(
         self,
         sobject: str,
-        data: list[dict[str, Any]],
+        data: Iterable[dict[str, Any]],
         external_id_field: str,
         assignment_rule_id: str | None = None,
     ) -> IngestResult:
@@ -152,7 +152,7 @@ class BulkClientV2:
         ----------
         sobject : str
             Salesforce object name.
-        data : list[dict[str, Any]]
+        data : Iterable[dict[str, Any]]
             Records to create or update.
         external_id_field : str
             External ID field name.
@@ -175,7 +175,7 @@ class BulkClientV2:
     async def delete(
         self,
         sobject: str,
-        data: list[dict[str, Any]],
+        data: Iterable[dict[str, Any]],
         hard: bool = False,
     ) -> IngestResult:
         """
@@ -185,7 +185,7 @@ class BulkClientV2:
         ----------
         sobject : str
             Salesforce object name.
-        data : list[dict[str, Any]]
+        data : Iterable[dict[str, Any]]
             Records to delete.
         hard : bool, default False
             Whether to hard delete records.
