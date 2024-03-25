@@ -1,13 +1,13 @@
 import asyncio
 
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, call, patch
 
 import httpx
 import pytest
 import respx
 import time_machine
 
-from aiosalesforce.events import EventBus, RestApiCallConsumptionEvent
+from aiosalesforce.events import EventBus, RestApiCallConsumptionEvent, RetryEvent
 from aiosalesforce.exceptions import SalesforceError
 from aiosalesforce.retries import (
     ExceptionRule,
@@ -263,10 +263,33 @@ class TestRetryPolicy:
         assert response.status_code == 200
 
         # Assert event hook was called:
-        # - 1 for consumption (exception retries don't consume API calls)
-        # - 2 for retry
         assert event_hook.await_count == 4
         assert sleep_mock.await_count == 3
+        event_hook.assert_has_awaits(
+            [
+                # 3 retries (exceptions don't consume API calls)
+                *[
+                    call(
+                        RetryEvent(
+                            type="retry",
+                            attempt=i,
+                            request=ANY,
+                            response=None,
+                            exception=ANY,
+                        )
+                    )
+                    for i in range(1, 4)
+                ],
+                # 1 consumption on success
+                call(
+                    RestApiCallConsumptionEvent(
+                        type="rest_api_call_consumption",
+                        response=response,
+                        count=1,
+                    )
+                ),
+            ]
+        )
 
     async def test_request_retry_on_exception_exceed_limit(
         self,
@@ -312,9 +335,25 @@ class TestRetryPolicy:
             )
 
         # Assert event hook was called:
-        # - 3 for retry (no consumption because exceptions don't consume API calls)
         assert event_hook.await_count == 3
         assert sleep_mock.await_count == 3
+        event_hook.assert_has_awaits(
+            [
+                # 3 retries (exceptions don't consume API calls)
+                *[
+                    call(
+                        RetryEvent(
+                            type="retry",
+                            attempt=i,
+                            request=ANY,
+                            response=None,
+                            exception=ANY,
+                        )
+                    )
+                    for i in range(1, 4)
+                ],
+            ]
+        )
 
     async def test_request_retry_on_response(
         self,
@@ -356,10 +395,42 @@ class TestRetryPolicy:
         assert response.status_code == 200
 
         # Assert event hook was called:
-        # - 3 for consumption
-        # - 2 for retry
         assert event_hook.await_count == 5
         assert sleep_mock.await_count == 2
+        calls = []
+        # 2 retries with 1 consumption each
+        for i in range(1, 3):
+            calls.extend(
+                [
+                    call(
+                        RestApiCallConsumptionEvent(
+                            type="rest_api_call_consumption",
+                            response=ANY,
+                            count=1,
+                        )
+                    ),
+                    call(
+                        RetryEvent(
+                            type="retry",
+                            attempt=i,
+                            request=ANY,
+                            response=ANY,
+                            exception=None,
+                        )
+                    ),
+                ]
+            )
+        # 1 consumption on final successfull request
+        calls.append(
+            call(
+                RestApiCallConsumptionEvent(
+                    type="rest_api_call_consumption",
+                    response=response,
+                    count=1,
+                )
+            )
+        )
+        event_hook.assert_has_awaits(calls)
 
     async def test_request_retry_on_response_exceed_limit(
         self,
@@ -403,7 +474,39 @@ class TestRetryPolicy:
         assert response.status_code == 504
 
         # Assert event hook was called:
-        # - 4 for consumption
-        # - 3 for retry
         assert event_hook.await_count == 7
         assert sleep_mock.await_count == 3
+        calls = []
+        # 3 retries with 1 consumption each
+        for i in range(1, 4):
+            calls.extend(
+                [
+                    call(
+                        RestApiCallConsumptionEvent(
+                            type="rest_api_call_consumption",
+                            response=ANY,
+                            count=1,
+                        )
+                    ),
+                    call(
+                        RetryEvent(
+                            type="retry",
+                            attempt=i,
+                            request=ANY,
+                            response=ANY,
+                            exception=None,
+                        )
+                    ),
+                ]
+            )
+        # 1 consumption on final failed request
+        calls.append(
+            call(
+                RestApiCallConsumptionEvent(
+                    type="rest_api_call_consumption",
+                    response=response,
+                    count=1,
+                )
+            )
+        )
+        event_hook.assert_has_awaits(calls)

@@ -143,7 +143,7 @@ class RetryContext(RetryBase):
                         event_bus.publish_event(
                             RetryEvent(
                                 type="retry",
-                                attempt=self.retry_count["total"] + 1,
+                                attempt=self.retry_count["total"],
                                 request=request,
                                 exception=exc,
                             )
@@ -164,7 +164,7 @@ class RetryContext(RetryBase):
                     event_bus.publish_event(
                         RetryEvent(
                             type="retry",
-                            attempt=self.retry_count["total"] + 1,
+                            attempt=self.retry_count["total"],
                             request=request,
                             response=response,
                         )

@@ -120,7 +120,8 @@ or by checking the type of the event object.
 !!! note "Note"
 
     The `attempt` attribute of the `RetryEvent` indicates sequential number
-    of the retry attempt. The first attempt is `1`, the second is `2`, and so on.
+    of the retry attempt. The first retry attempt is `1`, the second is `2`, and so on.
+    Attempt `0` is the initial request and is not a retry.
 
 !!! note "Note"
 
