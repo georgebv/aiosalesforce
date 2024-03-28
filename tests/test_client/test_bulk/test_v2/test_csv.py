@@ -87,7 +87,7 @@ class TestCsvSerializer:
     def test_empty(self):
         assert list(serialize_ingest_data([])) == []
 
-    def test_single(self):
+    def test_single_row(self):
         data = [{"FirstName": "Jon", "LastName": "Doe"}]
         csvs = list(serialize_ingest_data(data))
         assert len(csvs) == 1
@@ -131,3 +131,60 @@ class TestCsvSerializer:
         csvs = list(serialize_ingest_data(data, max_size_bytes=117))
         assert len(csvs) == 9
         assert sum(len(deserialize_ingest_results(csv)) for csv in csvs) == len(data)
+
+    def test_nested(self):
+        data = [
+            {"FirstName": "Jon", "LastName": "Doe", "Employer__r": {"EID__c": "123"}}
+            for _ in range(100)
+        ]
+        csvs = list(serialize_ingest_data(data))
+        assert len(csvs) == 1
+        assert csvs[0] == b"\n".join(
+            [
+                b"FirstName,LastName,Employer__r.EID__c",
+                *[b"Jon,Doe,123" for _ in range(100)],
+                b"",
+            ]
+        )
+
+    def test_everything(self):
+        data = [
+            {
+                "Active": True,
+                "Rehire": False,
+                "Bonus": None,
+                "Hired": datetime.datetime(2024, 5, 6, 12, 13, 14),
+                "Birthdate": datetime.date(2000, 1, 1),
+                "FirstName": "Jon",
+                "LastName": "Doe",
+                "Salary": 100_000,
+                "TaxRate": 0.25,
+                "Employer__r": {"EID__c": "123"},
+            }
+            for _ in range(100)
+        ]
+        csvs = list(serialize_ingest_data(data, max_records=30))
+        assert len(csvs) == 4
+        for i in range(3):
+            assert csvs[i] == b"\n".join(
+                [
+                    b"Active,Rehire,Bonus,Hired,Birthdate,FirstName,LastName,Salary,TaxRate,Employer__r.EID__c",
+                    *[
+                        b"true,false,,2024-05-06T12:13:14.000,2000-01-01,Jon,Doe,100000,0.25,123"
+                        for _ in range(30)
+                    ],
+                    b"",
+                ]
+            )
+            assert len(deserialize_ingest_results(csvs[i])) == 30
+        assert csvs[-1] == b"\n".join(
+            [
+                b"Active,Rehire,Bonus,Hired,Birthdate,FirstName,LastName,Salary,TaxRate,Employer__r.EID__c",
+                *[
+                    b"true,false,,2024-05-06T12:13:14.000,2000-01-01,Jon,Doe,100000,0.25,123"
+                    for _ in range(10)
+                ],
+                b"",
+            ]
+        )
+        assert len(deserialize_ingest_results(csvs[-1])) == 10

@@ -141,7 +141,7 @@ def serialize_ingest_data(
                 ),
                 UserWarning,
             )
-        data = list(data)
+        data = [_serialize_dict(value) for value in data]
         fieldnames = dict.fromkeys(itertools.chain.from_iterable(data)).keys()
 
     buffer = CsvBuffer()
