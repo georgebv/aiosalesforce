@@ -102,7 +102,7 @@ class TestBaseAuth:
 
 
 class TestSoapLogin:
-    async def test_soap_login(
+    async def test_auth(
         self,
         config: dict[str, str],
         pseudo_client: Salesforce,
@@ -120,7 +120,7 @@ class TestSoapLogin:
         assert event_hook.await_count == 3
 
     @pytest.mark.usefixtures("mock_soap_login")
-    async def test_soap_login_expiration(
+    async def test_expiration(
         self,
         config: dict[str, str],
         pseudo_client: Salesforce,
@@ -143,7 +143,7 @@ class TestSoapLogin:
             assert not auth.expired
 
     @pytest.mark.usefixtures("mock_soap_login")
-    async def test_soap_login_invalid_credentials(
+    async def test_invalid_credentials(
         self,
         config: dict[str, str],
         pseudo_client: Salesforce,
@@ -161,7 +161,7 @@ class TestSoapLogin:
 
 
 class TestClientCredentialsFlow:
-    async def test_client_credentials_flow(
+    async def test_auth(
         self,
         config: dict[str, str],
         pseudo_client: Salesforce,
@@ -203,10 +203,62 @@ class TestClientCredentialsFlow:
             tick=False,
         ):
             # Access token for the Client Credentials Flow never expires
+            # if timeout is not set
             assert not auth.expired
         assert event_hook.await_count == 3
 
-    async def test_client_credentials_flow_invalid_credentials(
+    async def test_expiration(
+        self,
+        config: dict[str, str],
+        pseudo_client: Salesforce,
+        httpx_mock_router: respx.MockRouter,
+    ):
+        expected_access_token = "SUPER-SECRET-ACCESS-TOKEN"  # noqa: S105
+
+        httpx_mock_router.post(
+            f"{config['base_url']}/services/oauth2/token",
+        ).mock(
+            httpx.Response(
+                status_code=200,
+                json={
+                    "access_token": expected_access_token,
+                    "instance_url": "https://example.salesforce.com",
+                    "id": (
+                        "https://login.salesforce.com/id"
+                        "/00Dxx0000000000AAA/005xx0000000xxxAAA"
+                    ),
+                    "token_type": "Bearer",
+                    "scope": "full",
+                    "issued_at": int(time.time()),
+                    "signature": "SUPER-SECRET-SIGNATURE",
+                },
+            )
+        )
+
+        event_hook = AsyncMock()
+        pseudo_client.event_bus.subscribe_callback(event_hook)
+        auth = ClientCredentialsFlow(
+            client_id="super-secret-client-id",
+            client_secret="super-secret-client-secret",  # noqa: S106
+            timeout=15 * 60,  # 15 minutes
+        )
+        access_token = await auth.get_access_token(pseudo_client)
+        assert event_hook.await_count == 3
+        assert access_token == expected_access_token
+        assert auth._expiration_time is not None
+        assert auth._expiration_time > time.time()
+        assert not auth.expired
+        with time_machine.travel(
+            time.time() + 1e9,
+            tick=False,
+        ):
+            assert auth.expired
+            access_token = await auth.get_access_token(pseudo_client)
+            assert access_token == expected_access_token
+            assert not auth.expired
+        assert event_hook.await_count == 6
+
+    async def test_invalid_credentials(
         self,
         config: dict[str, str],
         pseudo_client: Salesforce,

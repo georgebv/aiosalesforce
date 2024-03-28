@@ -1,3 +1,5 @@
+import time
+
 from typing import TYPE_CHECKING
 
 from aiosalesforce.auth.base import Auth
@@ -24,13 +26,24 @@ class ClientCredentialsFlow(Auth):
         Client ID.
     client_secret : str
         Client secret.
+    timeout : float, optional
+        Timeout for the access token in seconds.
+        By default assumed to never expire.
 
     """
 
-    def __init__(self, client_id: str, client_secret: str) -> None:
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        timeout: float | None = None,
+    ) -> None:
         super().__init__()
         self.client_id = client_id
         self.client_secret = client_secret
+        self.timeout = timeout
+
+        self._expiration_time: float | None = None
 
     async def _acquire_new_access_token(self, client: "Salesforce") -> str:
         request = client.httpx_client.build_request(
@@ -78,4 +91,13 @@ class ClientCredentialsFlow(Auth):
                 response=response,
             )
         )
+        if self.timeout is not None:
+            self._expiration_time = time.time() + self.timeout
         return json_loads(response.content)["access_token"]
+
+    @property
+    def expired(self) -> bool:
+        super().expired
+        if self._expiration_time is None:  # pragma: no cover
+            return False
+        return self._expiration_time <= time.time()
