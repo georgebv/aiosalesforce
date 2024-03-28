@@ -1,5 +1,6 @@
 import csv
 import datetime
+import itertools
 
 from typing import Any, Collection, Iterable
 
@@ -127,10 +128,14 @@ def serialize_ingest_data(
         CSV file as a byte string.
 
     """
+    # Create two streams - one for the fieldnames and one for the records
+    # If fieldnames is provided, first stream is not used
+    # Streams are used to account for scenarios where data, if naively converted into
+    # a list, would exceed available memory.
+    stream_1, stream_2 = itertools.tee((_serialize_dict(record) for record in data), 2)
+
     if fieldnames is None:
-        fieldnames = set()
-        for record in (_serialize_dict(record) for record in data):
-            fieldnames.update(record.keys())
+        fieldnames = dict.fromkeys(itertools.chain.from_iterable(stream_1)).keys()
 
     buffer = CsvBuffer()
     writer = csv.DictWriter(
@@ -140,7 +145,7 @@ def serialize_ingest_data(
     )
 
     carry_over: bytes | None = None
-    for row in (_serialize_dict(record) for record in data):
+    for row in stream_2:
         if buffer.size == 0:
             writer.writeheader()
             if carry_over is not None:
