@@ -1,6 +1,8 @@
 import csv
 import datetime
+import inspect
 import itertools
+import warnings
 
 from typing import Any, Collection, Iterable
 
@@ -78,9 +80,10 @@ def _serialize_dict(data: dict[str, Any]) -> dict[str, str]:
                 raise ValueError(
                     f"Dict for '{key}' must have exactly one value, got {len(value)}"
                 )
-            new_key = f"{key}.{next(iter(value.keys()))}"
+            _key, _value = next(iter(value.items()))
+            new_key = f"{key}.{_key}"
             try:
-                new_value = _serialize_value(next(iter(value.values())))
+                new_value = _serialize_value(_value)
             except TypeError as exc:
                 raise TypeError(f"Invalid dict value for '{key}'") from exc
         else:
@@ -128,14 +131,18 @@ def serialize_ingest_data(
         CSV file as a byte string.
 
     """
-    # Create two streams - one for the fieldnames and one for the records
-    # If fieldnames is provided, first stream is not used
-    # Streams are used to account for scenarios where data, if naively converted into
-    # a list, would exceed available memory.
-    stream_1, stream_2 = itertools.tee((_serialize_dict(record) for record in data), 2)
-
     if fieldnames is None:
-        fieldnames = dict.fromkeys(itertools.chain.from_iterable(stream_1)).keys()
+        if inspect.isgenerator(data):
+            warnings.warn(
+                (
+                    "Passing a generator without providing fieldnames causes the "
+                    "entire contents of the generator to be stored in memory "
+                    "to infer fieldnames. This may result in high memory usage."
+                ),
+                UserWarning,
+            )
+        data = list(data)
+        fieldnames = dict.fromkeys(itertools.chain.from_iterable(data)).keys()
 
     buffer = CsvBuffer()
     writer = csv.DictWriter(
@@ -145,15 +152,17 @@ def serialize_ingest_data(
     )
 
     carry_over: bytes | None = None
-    for row in stream_2:
+    for row in data:
         if buffer.size == 0:
             writer.writeheader()
             if carry_over is not None:
                 buffer.write(carry_over.decode("utf-8"))
                 carry_over = None
         writer.writerow(row)
-        if buffer.size >= max_size_bytes or buffer.n_rows >= max_records:
-            carry_over = buffer.pop()
+        # -1 to account for the header
+        if buffer.size >= max_size_bytes or (buffer.n_rows - 1) >= max_records:
+            if buffer.size > max_size_bytes or (buffer.n_rows - 1) > max_records:
+                carry_over = buffer.pop()
             yield buffer.content
             buffer.flush()
 

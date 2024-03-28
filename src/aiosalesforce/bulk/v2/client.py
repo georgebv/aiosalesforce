@@ -158,6 +158,7 @@ class BulkClientV2:
             External ID field name.
         assignment_rule_id : str | None, default None
             The ID of an assignment rule to run for a Case or a Lead.
+
         Returns
         -------
         IngestResult
