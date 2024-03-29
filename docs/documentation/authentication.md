@@ -61,7 +61,7 @@ auth = SoapLogin(
 )
 ```
 
-??? question "Where do I find my security token?"
+??? question "Where to find security token?"
 
     Security token can be obtained from the Salesforce UI by navigating to
     `Settings` > `Personal Information` > `Reset My Security Token`, clicking the
@@ -80,6 +80,49 @@ from aiosalesforce.auth import ClientCredentials
 auth = ClientCredentials(
     client_id="client-id",
     client_secret="client-secret",
+)
+```
+
+??? question "How to create and configure a connected app?"
+
+    First, you need to creat a connected app in Salesforce:
+
+    1. Navigate to `Setup` > `Apps` > `App Manager` and click `New Connected App`
+    2. Check `Enable OAuth Settings`
+    3. Check `Enable for Device Flow`
+    4. Check `Enable Client Credentials Flow`
+    5. Select necessary scopes (generally, it's `Full access (full)`)
+
+    Next, you need to enable the Client Credentials Flow for the connected app:
+
+    1. Navigate to `Setup` > `Apps` > `App Manager` and find your connected app
+    2. Click `Manage` and then `Edit Policies`
+    3. Select `All users may self-authorize` in the `Permitted Users` section
+    4. Select a user on behalf of which the connected app will authenticate and
+       perform actions in the `Run As` field of the `Client Credentials Flow` section
+    5. (optional) Set the `Timeout Value` field to whichever value is appropriate in
+       your case
+    6. Click `Save`
+
+    Finally, you need to retrieve the `client_id` and `client_secret` for the connected
+    app:
+
+    1. Navigate to `Setup` > `Apps` > `App Manager` and find your connected app
+    2. Click `View` and then click `Manage Consumer Details`
+    3. Copy the `Consumer Key` (`client_id`) and `Consumer Secret` (`client_secret)
+       values. If you need to reset your credentials, you do it here as well.
+
+If you configured timeout for the access token when creating the connected app,
+you can use the `timeout` parameter to specify duration in seconds after which
+the access token will be automatically refreshed. This way you can save a retry API
+call which would normally be retried due to 401 (token expired) by pre-emptively
+refreshing the token.
+
+```python
+auth = ClientCredentials(
+    client_id="client-id",
+    client_secret="client-secret",
+    timeout=900,  # 15 minutes
 )
 ```
 
