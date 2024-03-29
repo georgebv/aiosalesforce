@@ -13,45 +13,47 @@ from aiosalesforce.bulk.v2._csv import (
     serialize_ingest_data,
 )
 
+PARAMETRIZE_VALUE = pytest.mark.parametrize(
+    "value, expected",
+    [
+        (True, "true"),
+        (False, "false"),
+        (None, ""),
+        (datetime.datetime(2024, 5, 6, 12, 13, 14), "2024-05-06T12:13:14.000"),
+        pytest.param(
+            datetime.datetime(
+                *(2024, 5, 6, 12, 0, 0, 123000),
+                tzinfo=zoneinfo.ZoneInfo("America/New_York")
+                if sys.platform != "win32"
+                else None,
+            ),
+            "2024-05-06T12:00:00.123-04:00",
+            marks=pytest.mark.skipif(
+                sys.platform == "win32",
+                reason="Windows doesn't have IANA time zone database",
+            ),
+        ),
+        (datetime.date(2024, 5, 6), "2024-05-06"),
+        ("foo", "foo"),
+        (1, "1"),
+        (1.5, "1.5"),
+    ],
+    ids=[
+        "True",
+        "False",
+        "None",
+        "datetime",
+        "datetime with time zone",
+        "date",
+        "str",
+        "int",
+        "float",
+    ],
+)
+
 
 class TestValueSerializer:
-    @pytest.mark.parametrize(
-        "value, expected",
-        [
-            (True, "true"),
-            (False, "false"),
-            (None, ""),
-            (datetime.datetime(2024, 5, 6, 12, 13, 14), "2024-05-06T12:13:14.000"),
-            pytest.param(
-                datetime.datetime(
-                    *(2024, 5, 6, 12, 0, 0, 123000),
-                    tzinfo=zoneinfo.ZoneInfo("America/New_York")
-                    if sys.platform != "win32"
-                    else None,
-                ),
-                "2024-05-06T12:00:00.123-04:00",
-                marks=pytest.mark.skipif(
-                    sys.platform == "win32",
-                    reason="Windows doesn't have IANA time zone database",
-                ),
-            ),
-            (datetime.date(2024, 5, 6), "2024-05-06"),
-            ("foo", "foo"),
-            (1, "1"),
-            (1.5, "1.5"),
-        ],
-        ids=[
-            "True",
-            "False",
-            "None",
-            "datetime",
-            "datetime with time zone",
-            "date",
-            "str",
-            "int",
-            "float",
-        ],
-    )
+    @PARAMETRIZE_VALUE
     def test_supported(self, value, expected):
         assert _serialize_value(value) == expected
 
@@ -64,23 +66,32 @@ class TestDictSerializer:
     def test_empty(self):
         assert _serialize_dict({}) == {}
 
-    def test_single(self):
-        data = {"FirstName": "Jon"}
-        assert _serialize_dict(data) == {"FirstName": "Jon"}
+    @PARAMETRIZE_VALUE
+    def test_single(self, value, expected):
+        data = {"Field": value}
+        assert _serialize_dict(data) == {"Field": expected}
 
-    def test_nested(self):
-        data = {"Name": {"FirstName": "Jon"}}
-        assert _serialize_dict(data) == {"Name.FirstName": "Jon"}
+    @PARAMETRIZE_VALUE
+    def test_nested(self, value, expected):
+        data = {"LookupField": {"RelationshipField": value}}
+        assert _serialize_dict(data) == {"LookupField.RelationshipField": expected}
 
-    def test_invalid_nested(self):
+    def test_nested_invalid_structure(self):
         with pytest.raises(
             ValueError, match="Dict for 'Name' must have exactly one value"
         ):
             _serialize_dict({"Name": {"FirstName": "Jon", "LastName": "Doe"}})
 
-    def test_invalid_value(self):
+    def test_nested_invalid_value(self):
         with pytest.raises(TypeError, match="Invalid dict value for 'Name'"):
             _serialize_dict({"Name": {"FirstName": object()}})
+
+    @PARAMETRIZE_VALUE
+    def test_nested_improper_custom_field(self, value, expected):
+        with pytest.warns(UserWarning, match="Relationships for custom fields"):
+            assert _serialize_dict({"Field__c": {"Relationship": value}}) == {
+                "Field__r.Relationship": expected
+            }
 
 
 class TestCsvSerializer:
@@ -94,26 +105,29 @@ class TestCsvSerializer:
         assert csvs[0] == b"FirstName,LastName\nJon,Doe\n"
 
     @pytest.mark.parametrize(
-        "func,warns",
-        [
-            (list, False),
-            (tuple, False),
-            (lambda x: (v for v in x), True),
-        ],
-        ids=[
-            "list",
-            "tuple",
-            "generator",
-        ],
+        "pass_fields",
+        [False, True],
+        ids=["without fields", "with fields"],
     )
-    def test_iterable_types(self, func: Callable[[Iterable], Iterable], warns: bool):
+    @pytest.mark.parametrize(
+        "func,type_",
+        [(list, "list"), (tuple, "tuple"), (lambda x: (v for v in x), "generator")],
+        ids=["list", "tuple", "generator"],
+    )
+    def test_iterable_types(
+        self,
+        func: Callable[[Iterable], Iterable],
+        type_: str,
+        pass_fields: bool,
+    ):
         """Tests for a bug where generator was not properly reused."""
         data = [{"FirstName": "Jon", "LastName": "Doe"} for _ in range(100)]
-        if warns:
+        fieldnames = ["FirstName", "LastName"] if pass_fields else None
+        if type_ == "generator" and not pass_fields:
             with pytest.warns(UserWarning, match="Passing a generator"):
-                csvs = list(serialize_ingest_data(func(data)))
+                csvs = list(serialize_ingest_data(func(data), fieldnames=fieldnames))
         else:
-            csvs = list(serialize_ingest_data(func(data)))
+            csvs = list(serialize_ingest_data(func(data), fieldnames=fieldnames))
         assert len(csvs) == 1
         # Extra for header and trailing newline
         assert len(csvs[0].split(b"\n")) == 102
@@ -147,7 +161,12 @@ class TestCsvSerializer:
             ]
         )
 
-    def test_everything(self):
+    @pytest.mark.parametrize(
+        "pass_fields",
+        [False, True],
+        ids=["without fields", "with fields"],
+    )
+    def test_everything(self, pass_fields: bool):
         data = [
             {
                 "Active": True,
@@ -163,7 +182,23 @@ class TestCsvSerializer:
             }
             for _ in range(100)
         ]
-        csvs = list(serialize_ingest_data(data, max_records=30))
+        fieldnames = (
+            [
+                "Active",
+                "Rehire",
+                "Bonus",
+                "Hired",
+                "Birthdate",
+                "FirstName",
+                "LastName",
+                "Salary",
+                "TaxRate",
+                "Employer__r.EID__c",
+            ]
+            if pass_fields
+            else None
+        )
+        csvs = list(serialize_ingest_data(data, fieldnames=fieldnames, max_records=30))
         assert len(csvs) == 4
         for i in range(3):
             assert csvs[i] == b"\n".join(

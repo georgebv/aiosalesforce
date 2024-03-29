@@ -81,7 +81,17 @@ def _serialize_dict(data: dict[str, Any]) -> dict[str, str]:
                     f"Dict for '{key}' must have exactly one value, got {len(value)}"
                 )
             _key, _value = next(iter(value.items()))
-            new_key = f"{key}.{_key}"
+            if key.lower().endswith("__c"):
+                warnings.warn(
+                    (
+                        f"Relationships for custom fields must end with '__r'. "
+                        f"'{key}' was corrected to '{key[:-1]}r'."
+                    ),
+                    UserWarning,
+                )
+                new_key = f"{key[:-1]}r.{_key}"
+            else:
+                new_key = f"{key}.{_key}"
             try:
                 new_value = _serialize_value(_value)
             except TypeError as exc:
@@ -131,17 +141,19 @@ def serialize_ingest_data(
         CSV file as a byte string.
 
     """
+    if fieldnames is None and inspect.isgenerator(data):
+        warnings.warn(
+            (
+                "Passing a generator without providing fieldnames causes the "
+                "entire contents of the generator to be stored in memory "
+                "to infer fieldnames. This may result in high memory usage."
+            ),
+            UserWarning,
+        )
+
+    data = map(_serialize_dict, data)
     if fieldnames is None:
-        if inspect.isgenerator(data):
-            warnings.warn(
-                (
-                    "Passing a generator without providing fieldnames causes the "
-                    "entire contents of the generator to be stored in memory "
-                    "to infer fieldnames. This may result in high memory usage."
-                ),
-                UserWarning,
-            )
-        data = [_serialize_dict(value) for value in data]
+        data = list(data)
         fieldnames = dict.fromkeys(itertools.chain.from_iterable(data)).keys()
 
     buffer = CsvBuffer()
