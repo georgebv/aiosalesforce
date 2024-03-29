@@ -23,6 +23,7 @@ nav:
       - Bulk API 2.0:
           - Client: api-reference/bulk/v2/client.md
           - Ingest Client: api-reference/bulk/v2/ingest.md
+          - CSV: api-reference/bulk/v2/csv.md
       - Events: api-reference/events.md
       - Retries: api-reference/retries.md
       - Exceptions: api-reference/exceptions.md
