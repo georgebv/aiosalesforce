@@ -328,7 +328,7 @@ class BulkIngestClient:
             assignment_rule_id=assignment_rule_id,
         )
         job = await self.upload_job_data(job.id, data)
-        while job.state not in {"JobComplete", "Failed"}:
+        while job.state.lower().strip(" ") in {"open", "uploadcomplete", "inprogress"}:
             await asyncio.sleep(polling_interval)
             job = await self.get_job(job.id)
 
