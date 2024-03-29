@@ -12,7 +12,7 @@ nav:
       - Introduction: documentation/introduction.md
       - Authentication: documentation/authentication.md
       - Salesforce Client: documentation/client.md
-      # TODO SOQL Queries
+      - SOQL Queries: documentation/soql.md
       # TODO Sobject Client
       # TODO Bulk API Client
       # TODO Handling Exceptions
