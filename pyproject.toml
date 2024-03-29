@@ -43,6 +43,8 @@ dev-dependencies = [
     "pytest-cov>=4.1.0",
     "respx>=0.20.2",
     "time-machine>=2.14.0",
+    # Development
+    "pre-commit>=3.7.0",
 ]
 
 [tool.hatch.version]
