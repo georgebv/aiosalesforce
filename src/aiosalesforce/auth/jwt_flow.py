@@ -21,7 +21,7 @@ class JwtFlow(Auth):
     """
     Authenticate using JWT
 
-    https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_client_credentials_flow.htm&type=5
+    https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_jwt_flow.htm&type=5
 
     Parameters
     ----------
