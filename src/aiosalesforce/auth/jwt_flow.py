@@ -1,15 +1,11 @@
 import time
 from html import unescape
-
 from typing import TYPE_CHECKING
 
 import jwt
 
 from aiosalesforce.auth.base import Auth
-from aiosalesforce.events import (
-    RequestEvent,
-    ResponseEvent,
-)
+from aiosalesforce.events import RequestEvent, ResponseEvent
 from aiosalesforce.exceptions import AuthenticationError
 from aiosalesforce.utils import json_loads
 
@@ -31,9 +27,6 @@ class JwtFlow(Auth):
         Username to authenticate with.
     priv_key_file: str
         Private key file.
-    timeout : float, optional
-        Timeout for the access token in seconds.
-        By default assumed to never expire.
 
     """
 
@@ -43,14 +36,12 @@ class JwtFlow(Auth):
         subject: str,
         priv_key_file: str,
         priv_key_passphrase: str | None = None,
-        timeout: float | None = None,
     ) -> None:
         super().__init__()
         self.client_id = client_id
         self.subject = subject
         self.priv_key_file = priv_key_file
         self.priv_key_passphrase = priv_key_passphrase
-        self.timeout = timeout
 
         self._expiration_time: float | None = None
 
@@ -126,14 +117,4 @@ class JwtFlow(Auth):
                 response=response,
             )
         )
-        if self.timeout is not None:
-            self._expiration_time = time.time() + self.timeout
         return json_loads(response.content)["access_token"]
-
-    #
-    # @property
-    # def expired(self) -> bool:
-    #     super().expired
-    #     if self._expiration_time is None:  # pragma: no cover
-    #         return False
-    #     return self._expiration_time <= time.time()
