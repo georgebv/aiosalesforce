@@ -23,10 +23,12 @@ class JwtFlow(Auth):
     ----------
     client_id : str
         Client ID.
-    username: str
+    subject: str
         Username to authenticate with.
     priv_key_file: str
         Private key file.
+    priv_key_passphrase: str | None
+        Passphrase for private key file, if required
 
     """
 
@@ -42,8 +44,6 @@ class JwtFlow(Auth):
         self.subject = subject
         self.priv_key_file = priv_key_file
         self.priv_key_passphrase = priv_key_passphrase
-
-        self._expiration_time: float | None = None
 
     async def _acquire_new_access_token(self, client: "Salesforce") -> str:
         expiration = int(time.time()) + 300
