@@ -21,7 +21,7 @@ jobs:
       - name: Install rye
         run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
-        run: ~/.rye/shims/rye sync
+        run: ~/.rye/shims/rye sync --all-features
       - name: Run Ruff linter
         run: ~/.rye/shims/rye run ruff check .
       - name: Run Ruff import sorter

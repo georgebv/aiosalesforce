@@ -28,7 +28,7 @@ jobs:
       - name: Install rye
         run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
-        run: ~/.rye/shims/rye sync
+        run: ~/.rye/shims/rye sync --all-features
       - name: Run tests and generate coverage report
         run: ~/.rye/shims/rye run pytest
       - name: Upload coverage to Codecov
@@ -57,7 +57,7 @@ jobs:
       - name: Install project and its dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install httpx pytest pytest-asyncio pytest-cov respx time-machine
+          pip install httpx pytest pytest-asyncio pytest-cov respx time-machine pyjwt[crypto]
           pip install -e .
       - name: Run tests
         run: pytest

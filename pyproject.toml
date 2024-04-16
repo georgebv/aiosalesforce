@@ -23,6 +23,11 @@ Homepage = "https://github.com/georgebv/aiosalesforce"
 Documentation = "https://github.com/georgebv/aiosalesforce"
 Repository = "https://github.com/georgebv/aiosalesforce"
 
+[project.optional-dependencies]
+jwt = [
+    "pyjwt[crypto]>=2.8.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
