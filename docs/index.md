@@ -58,6 +58,12 @@ for interacting with Salesforce's APIs (REST, Bulk, etc.).
 pip install aiosalesforce
 ```
 
+If you need to use JWT authentication, install the `jwt` extra:
+
+```shell
+pip install aiosalesforce[jwt]
+```
+
 ## Demo
 
 Follow the steps below to create a simple script that authenticates against Salesforce
