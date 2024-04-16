@@ -1,1 +1,1 @@
-::: aiosalesforce.bulk.v2
+::: aiosalesforce.bulk.v2.client

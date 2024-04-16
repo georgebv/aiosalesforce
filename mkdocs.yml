@@ -14,7 +14,9 @@ nav:
       - Salesforce Client: documentation/client.md
       - SOQL Queries: documentation/soql.md
       - sObject Operations: documentation/sobject.md
-      # TODO Bulk API Client
+      - Bulk API:
+          - Bulk API: documentation/bulk/v1.md
+          - Bulk API 2.0: documentation/bulk/v2.md
       # TODO Handling Exceptions
   - API Reference:
       - Authentication: api-reference/auth.md
@@ -32,16 +34,16 @@ nav:
 theme:
   name: material
   features:
-    - navigation.tabs
+    - content.code.copy
     - content.tabs.link
-    - navigation.top
-    - navigation.prune
+    - navigation.expand
+    - navigation.footer
     - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
-    - navigation.footer
+    - navigation.tabs
+    - navigation.top
     - search.suggest
-    - content.code.copy
   palette:
     - media: "(prefers-color-scheme)"
       toggle:

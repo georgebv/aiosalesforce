@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class IngestResult:
+    """Bulk API 2.0 ingest job result."""
+
     jobs: list[JobInfo]
     successful_results: list[dict[str, Any]]
     failed_results: list[dict[str, Any]]
