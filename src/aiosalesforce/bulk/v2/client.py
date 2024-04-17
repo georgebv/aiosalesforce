@@ -14,12 +14,12 @@ logger = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class IngestResult:
-    """Bulk API 2.0 ingest job result."""
+    """Bulk API 2.0 ingest operation result."""
 
     jobs: list[JobInfo]
-    successful_results: list[dict[str, Any]]
-    failed_results: list[dict[str, Any]]
-    unprocessed_records: list[dict[str, Any]]
+    successful_results: list[dict[str, str]]
+    failed_results: list[dict[str, str]]
+    unprocessed_records: list[dict[str, str]]
 
 
 class BulkClientV2:

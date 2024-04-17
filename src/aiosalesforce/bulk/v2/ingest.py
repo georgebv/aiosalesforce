@@ -69,7 +69,7 @@ class JobInfo:
 
     @classmethod
     def from_json(cls, data: bytes) -> Self:
-        return cls(
+        job_info = cls(
             **{
                 field.name: (_ := json_loads(data)).get(
                     "".join(
@@ -83,6 +83,13 @@ class JobInfo:
                 for field in dataclasses.fields(cls)
             }
         )
+        for attr in ["created_date", "system_modstamp"]:
+            setattr(
+                job_info,
+                attr,
+                datetime.datetime.fromisoformat(getattr(job_info, attr)),
+            )
+        return job_info
 
 
 @dataclasses.dataclass
@@ -90,9 +97,9 @@ class JobResult:
     """Bulk API 2.0 ingest job result."""
 
     job_info: JobInfo
-    successful_results: list[dict[str, Any]]
-    failed_results: list[dict[str, Any]]
-    unprocessed_records: list[dict[str, Any]]
+    successful_results: list[dict[str, str]]
+    failed_results: list[dict[str, str]]
+    unprocessed_records: list[dict[str, str]]
 
 
 class BulkIngestClient:

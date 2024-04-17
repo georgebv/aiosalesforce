@@ -314,10 +314,7 @@ class TestJwtBearerFlow:
         client_id = "somewhat-secret-client-id"
         expected_access_token = "SUPER-SECRET-ACCESS-TOKEN"  # noqa: S105
 
-        async def side_effect(
-            request: httpx.Request,
-            route: respx.Route,
-        ) -> httpx.Response:
+        async def side_effect(request: httpx.Request) -> httpx.Response:
             data = parse_qs(request.content.decode("utf-8"))
             assert data["grant_type"] == ["urn:ietf:params:oauth:grant-type:jwt-bearer"]
             assertion = data["assertion"][0]
@@ -387,10 +384,7 @@ class TestJwtBearerFlow:
         client_id = "somewhat-secret-client-id"
         expected_access_token = "SUPER-SECRET-ACCESS-TOKEN"  # noqa: S105
 
-        async def side_effect(
-            request: httpx.Request,
-            route: respx.Route,
-        ) -> httpx.Response:
+        async def side_effect(request: httpx.Request) -> httpx.Response:
             data = parse_qs(request.content.decode("utf-8"))
             assert data["grant_type"] == ["urn:ietf:params:oauth:grant-type:jwt-bearer"]
             assertion = data["assertion"][0]

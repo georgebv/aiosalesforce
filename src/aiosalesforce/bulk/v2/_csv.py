@@ -182,7 +182,7 @@ def serialize_ingest_data(
         yield buffer.content
 
 
-def deserialize_ingest_results(data: bytes) -> list[dict[str, Any]]:
+def deserialize_ingest_results(data: bytes) -> list[dict[str, str]]:
     """
     Deserialize Salesforce Bulk API 2.0 ingest results from CSV.
 
@@ -193,7 +193,7 @@ def deserialize_ingest_results(data: bytes) -> list[dict[str, Any]]:
 
     Returns
     -------
-    list[dict[str, Any]]
+    list[dict[str, str]]
         List of records as dictionaries.
 
     """
