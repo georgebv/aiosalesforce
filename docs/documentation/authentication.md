@@ -47,12 +47,18 @@ if __name__ == "__main__":
 
 ## Built-in Authentication Methods
 
+| Method                                              | Connected App      | Server-to-Server   |
+| --------------------------------------------------- | ------------------ | ------------------ |
+| [SOAP Login](#soap-login)                           | :x:                | :heavy_check_mark: |
+| [Client Credentials Flow](#client-credentials-flow) | :heavy_check_mark: | :heavy_check_mark: |
+| [JWT Bearer Flow](#jwt-bearer-flow)                 | :heavy_check_mark: | :heavy_check_mark: |
+
 ### SOAP Login
 
 Authenticate using `username`, `password`, and `security token`.
 
 ```python
-from aiosalesforce.auth import SoapLogin
+from aiosalesforce import SoapLogin
 
 auth = SoapLogin(
     username="username",
@@ -75,7 +81,7 @@ auth = SoapLogin(
 Authenticate using a connected app for server-to-server integrations.
 
 ```python
-from aiosalesforce.auth import ClientCredentials
+from aiosalesforce import ClientCredentials
 
 auth = ClientCredentials(
     client_id="client-id",
@@ -109,7 +115,7 @@ auth = ClientCredentials(
 
     1. Navigate to `Setup` > `Apps` > `App Manager` and find your connected app
     2. Click `View` and then click `Manage Consumer Details`
-    3. Copy the `Consumer Key` (`client_id`) and `Consumer Secret` (`client_secret)
+    3. Copy the `Consumer Key` (`client_id`) and `Consumer Secret` (`client_secret`)
        values. If you need to reset your credentials, you do it here as well.
 
 If you configured timeout for the access token when creating the connected app,
@@ -125,6 +131,84 @@ auth = ClientCredentials(
     timeout=900,  # 15 minutes
 )
 ```
+
+### JWT Bearer Flow
+
+Authenticate using connected app and RSA private key.
+
+```python
+from aiosalesforce import JwtBearerFlow
+
+auth = JwtBearerFlow(
+    client_id="client-id",
+    username="username",
+    private_key="path/to/private-key.pem",
+)
+```
+
+Where:
+
+- `client_id` is the connected app's consumer key
+- `username` is the username of the user on behalf of which the connected app will
+  authenticate and perform actions
+- `private_key` is the path to the RSA private key file (must be in PEM format)
+
+You can optionally provide `private_key_passphrase` (if the private key is encrypted)
+and `timeout` (if you set connected app timeout) parameters.
+
+!!! warning "Warning"
+
+    The JWT Bearer Flow requires `PyJWT` and `cryptography` libraries to be installed.
+    You can install them using `pip install aiosalesforce[jwt]`.
+
+??? question "How to configure a connected app to use JWT Bearer Flow?"
+
+    Follow the same steps as for the
+    [Client Credentials Flow](#client-credentials-flow)
+    to create a connected app.
+
+    Create certificate and download certificate:
+
+    1. Navitate to `Setup` > `Security` > `Certificate and Key Management`
+    2. Click `Create Self-Signed Certificate`, give it label, name, select key size,
+       check `Exportable Private Key`, and click `Save`
+    3. Navigate back to `Certificate and Key Management` and click on
+       `Export to Keystore` (password needs to contain special characters, otherwise
+       Salesforce will tell you that you don't have sufficient privileges). Password
+       is needed only to subsequently extract the private key so you can discard it
+       after you are done with the process.
+    4. Click `Export` and save it locally (e.g. `certificate.crt`)
+
+    Extract private key:
+
+    1. Run the following command to extract the private key from the keystore:
+       ```bash
+       keytool -importkeystore -srckeystore certificate.crt -destkeystore \
+       certificate.p12 -deststoretype PKCS12
+       ```
+       Enter password when prompted
+    2. Run the following command to extract the private key from the PKCS12 file:
+       ```bash
+       openssl pkcs12 -in certificate.p12 -nocerts -nodes -out private-key.pem
+       ```
+    3. The `private-key.pem` file is your RSA private key
+
+    Configure connected app:
+
+    1. Navigate to `Setup` > `Apps` > `App Manager` and find your connected app
+    2. Click `Manage` and then click `Edit Policies`
+    3. Under `Permitted Users`, select `Admin approved users are pre-authorized`
+    4. `Save`
+    5. Navigate to `Setup` > `Apps` > `App Manager`, find your connected app,
+       and click `Edit`
+    6. Check `Use digital signatures` and upload the certificate (`certificate.crt`)
+       you created and downloaded from Salesforce earlier
+
+    Update profile assigned to users:
+
+    1. Navigate to `Setup` > `Users` > `Profiles`
+    2. Find profile assigned to the user (or create a new one) and click `Edit`
+    3. Enable `Connected App Access` for the connected app you created
 
 ## Custom Authentication
 

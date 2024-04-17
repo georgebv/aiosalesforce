@@ -2,6 +2,7 @@ __version__ = "0.5.4"
 
 __all__ = [
     "ClientCredentialsFlow",
+    "JwtBearerFlow",
     "SoapLogin",
     "Salesforce",
     "BulkApiBatchConsumptionEvent",
@@ -15,7 +16,7 @@ __all__ = [
     "format_soql",
 ]
 
-from .auth import ClientCredentialsFlow, SoapLogin
+from .auth import ClientCredentialsFlow, JwtBearerFlow, SoapLogin
 from .client import Salesforce
 from .events import (
     BulkApiBatchConsumptionEvent,
