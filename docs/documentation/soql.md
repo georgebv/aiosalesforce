@@ -1,3 +1,5 @@
+## Overview
+
 You can perform SOQL queries by using the `query` method of the `Salesforce` client.
 This method accepts a SOQL query string and return an asynchronous generator that
 yields records returned by the query.

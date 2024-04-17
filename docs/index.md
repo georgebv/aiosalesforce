@@ -27,13 +27,14 @@ hide:
 
 ---
 
-`aiosalesforce` is a modern, production-ready Python client for Salesforce APIs.
+`aiosalesforce` is a modern, production-ready asynchronous Python client
+for Salesforce APIs.
 It is built on top of the `httpx` library and provides a simple and intuitive API
-for interacting with Salesforce's APIs (REST, Bulk, etc.).
+for interacting with Salesforce's APIs (such as REST and Bulk).
 
 - **Fast:** designed from the ground up to be fully asynchronous :rocket:
+- **Resilient:** flexible and robust retrying configuration :gear:
 - **Fully typed:** every part of the library is fully typed and annotated :label:
-- **Reliable:** flexible and robust retrying configuration :gear:
 - **Intuitive:** API follows naming conventions of Salesforce's APIs while
   staying idiomatic to Python :snake:
 - **Salesforce first:** built with years of experience working with the Salesforce API
@@ -52,13 +53,18 @@ for interacting with Salesforce's APIs (REST, Bulk, etc.).
 - [httpx](https://github.com/encode/httpx)
 - [orjson](https://github.com/ijl/orjson)
 
+Optional dependencies:
+
+- [PyJWT](https://github.com/jpadilla/pyjwt)
+- [cryptography](https://github.com/pyca/cryptography)
+
 ## Installation
 
 ```shell
 pip install aiosalesforce
 ```
 
-If you need to use JWT authentication, install the `jwt` extra:
+To use the JWT Bearer Flow authentication install with the `jwt` extra:
 
 ```shell
 pip install aiosalesforce[jwt]
