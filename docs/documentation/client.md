@@ -340,12 +340,15 @@ retry_policy = RetryPolicy(
 
 The logic when deciding if a request should be retried is as follows:
 
-1. Check if `max_retries` or `timeout` is reached for the `RetryPolicy` instance -
-   if so, raise an exception.
-2. Evaluate rules in order provided. If a rule matches and its `max_retries` is not
-   yet reached - stop and retry the request. Otherwise, move to the next rule.
-3. If no rule matches or all rules have exhausted their `max_retries` - raise an
-   exception.
+1.  Check if `max_retries` or `timeout` is reached for the `RetryPolicy` instance -
+    if so, raise an exception.
+2.  Evaluate rules in order provided. If a rule:
+    <!-- prettier-ignore -->
+    - Doesn't match - move to the next rule
+    - Matches
+        - Its `max_retries` is exhausted - raise an exception
+        - Its `max_retries` is not exhausted - sleep and retry the request
+3.  If no rule matches - raise an exception.
 
 You can find more information about the `RetryPolicy` class in the
 [API Reference](../api-reference/retries.md#aiosalesforce.retries.RetryPolicy).
@@ -355,8 +358,8 @@ You can find more information about the `RetryPolicy` class in the
 A response rule is evaluated when a request fails due to a status code
 not being OK (status code >= 300). A response rule needs a function which
 it calls with the response object. If the function returns `True`, the rule
-matches and the request will be retried. You can also specify the maximum
-number of retries for the rule.
+matches and the request will be retried.
+You can also specify the maximum number of retries for the rule (by default 3).
 
 ```python
 from aiosalesforce import ResponseRule
@@ -381,7 +384,7 @@ By default, it will always retry on this exception. If you need to have more con
 over when the request should be retried, you can specify a function which it calls
 with the exception object. If the function returns `True`, the rule matches and the
 request will be retried. You can also specify the maximum number of retries
-for the rule.
+for the rule (by default 3).
 
 ```python
 from aiosalesforce import ExceptionRule

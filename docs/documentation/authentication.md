@@ -191,9 +191,9 @@ and `timeout` (if you set connected app timeout) parameters.
        ```bash
        openssl pkcs12 -in certificate.p12 -nocerts -nodes -out private-key.pem
        ```
-    3. The `private-key.pem` file is your RSA private key
+       The `private-key.pem` file is your RSA private key
 
-    Configure connected app:
+    Connected app needs additional configuration to use JWT Bearer Flow:
 
     1. Navigate to `Setup` > `Apps` > `App Manager` and find your connected app
     2. Click `Manage` and then click `Edit Policies`
@@ -203,8 +203,9 @@ and `timeout` (if you set connected app timeout) parameters.
        and click `Edit`
     6. Check `Use digital signatures` and upload the certificate (`certificate.crt`)
        you created and downloaded from Salesforce earlier
+    7. `Save`
 
-    Update profile assigned to users:
+    Update profile assigned to user(s) configured for this connected app:
 
     1. Navigate to `Setup` > `Users` > `Profiles`
     2. Find profile assigned to the user (or create a new one) and click `Edit`
@@ -236,7 +237,7 @@ method when the access token expires. By default the `expired` property always r
 `False`. You can declare whatever class attributes you need to implement the expiration
 mechanism.
 
-!!! warning "Warning"
+!!! info "Information"
 
     When implementing custom authentication, you are responsible for emitting
     [`RequestEvent`](../api-reference/events.md#aiosalesforce.events.RequestEvent)
@@ -245,6 +246,8 @@ mechanism.
     events using
     [`client.event_bus.publish_event`](../api-reference/events.md#aiosalesforce.events.EventBus.publish_event)
     method.
+    If you don't do this, any client-side logic built around events (e.g., logging or
+    metrics) will not receive request/response information related to authentication.
 
 ```python
 from aiosalesforce.auth import Auth
@@ -281,12 +284,15 @@ class MyAuth(Auth):
     authentication class:
 
     - Requets to Salesforce must be made using the
-    [`client.retry_policy.send_request_with_retries`](../api-reference/retries.md#aiosalesforce.retries.policy.RetryContext.send_request_with_retries) method
-    - Requests to other services must be made using the `client.httpx_client` attribute
+      [`client.retry_policy.send_request_with_retries`](../api-reference/retries.md#aiosalesforce.retries.policy.RetryContext.send_request_with_retries) method
+    - Requests to other services must be made using the
+      [`client.httpx_client`](../api-reference/client.md) attribute
 
     **Under no circumstances** should you make HTTP
-    requests using the `client.request` method - this method calls authentication
-    methods and can lead to infinite recursion.
+    requests using the
+    [`client.request`](../api-reference/client.md#aiosalesforce.client.Salesforce.request)
+    method - this method calls authentication methods
+    and can lead to infinite recursion.
 
 You can request any arguments in the `__init__` method of your custom authentication
 class. The `__init__` method must call the `super().__init__()` method to initialize

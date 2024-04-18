@@ -103,6 +103,7 @@ def raise_salesforce_error(response: Response) -> NoReturn:
             exc_class = ServerError
         case _:
             exc_class = SalesforceError
+
     raise exc_class(
         f"[{error_code}] {error_message}" if error_code else error_message,
         response=response,

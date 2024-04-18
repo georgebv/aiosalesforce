@@ -9,7 +9,7 @@ account = await salesforce.sobject.get('Account', '0012v00002Q8f4QAAR')
 
 !!! info "Information"
 
-    When you create, update, delete, or upser a record, you must provide the `data`
+    When you create, update, delete, or upsert a record, you must provide the `data`
     parameter. This parameter can be either a dictionary or a string/bytes/bytearray
     object which represents a dictionary serialized as JSON. Take advantage of this
     if you have custom data types that are not serializable by `orjson`.
