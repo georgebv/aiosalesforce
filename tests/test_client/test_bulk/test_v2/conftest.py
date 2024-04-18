@@ -26,6 +26,12 @@ def ingest_client(bulk_client: BulkClientV2) -> Generator[BulkIngestClient, None
 
 
 class VirtualIngestJob:
+    """
+    Used to mock multiple httpx requests involved in managing
+    a single Bulk API 2.0 ingest job.
+
+    """
+
     def __init__(
         self,
         config: dict[str, str],
@@ -39,14 +45,30 @@ class VirtualIngestJob:
         self.httpx_mock_router = httpx_mock_router
         self.ingest_client = ingest_client
 
-        self.id = "".join(random.choices("0123456789", k=18))  # noqa: S311
-        self.operation = operation
-        self.sobject = sobject
-        self.external_id_field = external_id_field
-        self.created_date = datetime.datetime.now()
-        self.system_modstamp = datetime.datetime.now()
-        self.state = "Open"
+        self.job_info = JobInfo(
+            id="".join(random.choices("0123456789", k=18)),  # noqa: S311
+            operation=operation,
+            object=sobject,
+            created_by_id="00558000000yFyDAAU",
+            created_date=datetime.datetime.now(),
+            system_modstamp=datetime.datetime.now(),
+            state="Open",  # type: ignore
+            external_id_field_name=external_id_field,
+            concurrency_mode="Parallel",
+            content_type="CSV",
+            api_version=self.config["api_version"],
+            job_type="V2Ingest",
+            content_url=(
+                f"/services/data/v{self.config['api_version']}/jobs"
+                f"/ingest/7503h00000L0k2AAAR/batches"
+            ),
+            line_ending="LF",
+            column_delimiter="COMMA",
+        )
         self.data = b""
+        self.successful_results: list[dict] = []
+        self.failed_results: list[dict] = []
+        self.unprocessed_records: list[dict] = []
 
         # Mock job creation
         self.httpx_mock_router.post(self.ingest_client.base_url).mock(
@@ -62,56 +84,60 @@ class VirtualIngestJob:
             return httpx.Response(status_code=200, content=self.job_info_json)
 
         self.httpx_mock_router.put(
-            f"{self.ingest_client.base_url}/{self.id}/batches"
+            f"{self.ingest_client.base_url}/{self.job_info.id}/batches"
         ).mock(side_effect=upload_data)
 
         # Mock job state update
         def update_state(request: httpx.Request) -> httpx.Response:
-            self.state = orjson.loads(request.content)["state"]
+            self.job_info.state = orjson.loads(request.content)["state"]
             return httpx.Response(status_code=200, content=self.job_info_json)
 
-        self.httpx_mock_router.patch(f"{self.ingest_client.base_url}/{self.id}").mock(
-            side_effect=update_state
-        )
+        self.httpx_mock_router.patch(
+            f"{self.ingest_client.base_url}/{self.job_info.id}"
+        ).mock(side_effect=update_state)
 
         # Mock job status polling (transitions status on each call)
         def get_job_status(request: httpx.Request) -> httpx.Response:
-            if self.state == "UploadComplete":
-                self.state = "InProgress"
-            elif self.state == "InProgress":
-                self.state = "JobComplete"
+            if self.job_info.state == "UploadComplete":
+                self.job_info.state = "InProgress"
+            elif self.job_info.state == "InProgress":
+                self.job_info.state = "JobComplete"
             return httpx.Response(status_code=200, content=self.job_info_json)
 
-        self.httpx_mock_router.get(f"{self.ingest_client.base_url}/{self.id}").mock(
-            side_effect=get_job_status
+        self.httpx_mock_router.get(
+            f"{self.ingest_client.base_url}/{self.job_info.id}"
+        ).mock(side_effect=get_job_status)
+
+        # Mock job results
+        self.httpx_mock_router.get(
+            f"{self.ingest_client.base_url}/{self.job_info.id}/successfulResults"
+        ).mock(
+            side_effect=lambda _: httpx.Response(
+                status_code=200,
+                content=next(iter(serialize_ingest_data(self.successful_results)))
+                if len(self.successful_results) > 0
+                else b"",
+            )
         )
-
-        # Mock results
-        self.mock_results("successfulResults", [])
-        self.mock_results("failedResults", [])
-        self.mock_results("unprocessedrecords", [])
-
-    @property
-    def job_info(self) -> JobInfo:
-        return JobInfo(
-            id=self.id,
-            operation=self.operation,
-            object=self.sobject,
-            created_by_id="00558000000yFyDAAU",
-            created_date=self.created_date,
-            system_modstamp=self.system_modstamp,
-            state=self.state,  # type: ignore
-            external_id_field_name=self.external_id_field,
-            concurrency_mode="Parallel",
-            content_type="CSV",
-            api_version=self.config["api_version"],
-            job_type="V2Ingest",
-            content_url=(
-                f"/services/data/v{self.config['api_version']}/jobs"
-                f"/ingest/7503h00000L0k2AAAR/batches"
-            ),
-            line_ending="LF",
-            column_delimiter="COMMA",
+        self.httpx_mock_router.get(
+            f"{self.ingest_client.base_url}/{self.job_info.id}/failedResults"
+        ).mock(
+            side_effect=lambda _: httpx.Response(
+                status_code=200,
+                content=next(iter(serialize_ingest_data(self.failed_results)))
+                if len(self.failed_results) > 0
+                else b"",
+            )
+        )
+        self.httpx_mock_router.get(
+            f"{self.ingest_client.base_url}/{self.job_info.id}/unprocessedrecords"
+        ).mock(
+            side_effect=lambda _: httpx.Response(
+                status_code=200,
+                content=next(iter(serialize_ingest_data(self.unprocessed_records)))
+                if len(self.unprocessed_records) > 0
+                else b"",
+            )
         )
 
     @property
@@ -127,18 +153,6 @@ class VirtualIngestJob:
                 to_camel_case(field.name): job_dict[field.name]
                 for field in dataclasses.fields(JobInfo)
             }
-        )
-
-    def mock_results(self, type_: str, data: list[dict]) -> None:
-        self.httpx_mock_router.get(
-            f"{self.ingest_client.base_url}/{self.id}/{type_}"
-        ).mock(
-            return_value=httpx.Response(
-                status_code=200,
-                content=next(iter(serialize_ingest_data(data)))
-                if len(data) > 0
-                else b"",
-            )
         )
 
 

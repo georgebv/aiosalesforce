@@ -222,11 +222,11 @@ async def test_perform_operation(
         {"FirstName": "John", "LastName": "Doe", "Age": "30"},
         {"FirstName": "Jane", "LastName": "Doe", "Age": "42"},
     ]
-    result = [
+    expected_results = [
         {"sf__Created": "true", "sf__Id": f"{i}-abc", **record}
         for i, record in enumerate(data)
     ]
-    virtual_ingest_job.mock_results("successfulResults", result)
+    virtual_ingest_job.successful_results = expected_results
 
     # Mock sleeping when polling job status
     sleep_mock = AsyncMock()
@@ -239,6 +239,41 @@ async def test_perform_operation(
 
     assert len(results) == 1
     assert results[0].job_info == virtual_ingest_job.job_info
-    assert results[0].successful_results == result
+    assert results[0].successful_results == expected_results
+    assert results[0].failed_results == []
+    assert results[0].unprocessed_records == []
+
+
+async def test_perform_operation_with_multiple_jobs(
+    ingest_client: BulkIngestClient,
+    virtual_ingest_job: "VirtualIngestJob",
+):
+    # When deserialized from CSV returned by Salesforce everything is a string
+    data = [
+        {"FirstName": "John", "LastName": "Doe", "Age": f"{i:,d}"} for i in range(100)
+    ]
+    expected_results = [
+        {"sf__Created": "true", "sf__Id": f"{i}-abc", **record}
+        for i, record in enumerate(data)
+    ]
+    virtual_ingest_job.successful_results = expected_results
+
+    # Mock sleeping when polling job status
+    sleep_mock = AsyncMock()
+    with patch("asyncio.sleep", sleep_mock):
+        results: list[JobResult] = []
+        async for _result in ingest_client.perform_operation(
+            "insert",
+            "Contact",
+            data,
+            max_records=50,
+        ):
+            results.append(_result)
+    # 2 transitions: UploadComplete -> InProgress -> JobComplete x2 for 2 jobs
+    assert sleep_mock.await_count == 4
+
+    assert len(results) == 2
+    assert results[0].job_info == virtual_ingest_job.job_info
+    assert results[0].successful_results == expected_results
     assert results[0].failed_results == []
     assert results[0].unprocessed_records == []
