@@ -72,7 +72,7 @@ class SobjectClient:
             "POST",
             f"{self.base_url}/{sobject}",
             content=json_dumps(data),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
         return json_loads(response.content)["id"]
 
@@ -115,7 +115,12 @@ class SobjectClient:
         if fields is not None:
             params["fields"] = ",".join(fields)
 
-        response = await self.salesforce_client.request("GET", url, params=params)
+        response = await self.salesforce_client.request(
+            "GET",
+            url,
+            params=params,
+            headers={"Accept": "application/json"},
+        )
         return json_loads(response.content)
 
     async def update(
@@ -144,7 +149,7 @@ class SobjectClient:
             "PATCH",
             f"{self.base_url}/{sobject}/{id_}",
             content=json_dumps(data),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
 
     async def delete(
@@ -237,7 +242,7 @@ class SobjectClient:
             "PATCH",
             f"{self.base_url}/{sobject}/{external_id_field}/{id_}",
             content=json_dumps(data),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
         response_json = json_loads(response.content)
         return UpsertResponse(

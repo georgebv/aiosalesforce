@@ -51,6 +51,7 @@ class ClientCredentialsFlow(Auth):
             f"{client.base_url}/services/oauth2/token",
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
             },
             data={
                 "grant_type": "client_credentials",

@@ -182,7 +182,9 @@ class Salesforce:
 
         """
         response = await self.request(
-            "GET", f"{self.base_url}/services/data/v{self.version}/limits"
+            "GET",
+            f"{self.base_url}/services/data/v{self.version}/limits",
+            headers={"Accept": "application/json"},
         )
         return json_loads(response.content)
 
@@ -216,9 +218,14 @@ class Salesforce:
                     "GET",
                     f"{self.base_url}/services/data/v{self.version}/{operation}",
                     params={"q": query},
+                    headers={"Accept": "application/json"},
                 )
             else:
-                response = await self.request("GET", f"{self.base_url}{next_url}")
+                response = await self.request(
+                    "GET",
+                    f"{self.base_url}{next_url}",
+                    headers={"Accept": "application/json"},
+                )
             response_json: dict = json_loads(response.content)
             for record in response_json["records"]:
                 yield record

@@ -166,7 +166,7 @@ class BulkIngestClient:
             "POST",
             self.base_url,
             content=json_dumps(payload),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
         return JobInfo.from_json(response.content)
 
@@ -188,6 +188,7 @@ class BulkIngestClient:
         response = await self.bulk_client.salesforce_client.request(
             "GET",
             f"{self.base_url}/{job_id}",
+            headers={"Accept": "application/json"},
         )
         return JobInfo.from_json(response.content)
 
@@ -220,11 +221,13 @@ class BulkIngestClient:
                     "GET",
                     self.base_url,
                     params=params,
+                    headers={"Accept": "application/json"},
                 )
             else:
                 response = await self.bulk_client.salesforce_client.request(
                     "GET",
                     f"{self.bulk_client.salesforce_client.base_url}{next_url}",
+                    headers={"Accept": "application/json"},
                 )
             response_json: dict = json_loads(response.content)
             for record in response_json["records"]:
@@ -252,7 +255,7 @@ class BulkIngestClient:
             "PATCH",
             f"{self.base_url}/{job_id}",
             content=json_dumps({"state": "Aborted"}),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
         return JobInfo.from_json(response.content)
 
@@ -304,7 +307,7 @@ class BulkIngestClient:
             "PATCH",
             f"{self.base_url}/{job_id}",
             content=json_dumps({"state": "UploadComplete"}),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
         await self.bulk_client.salesforce_client.event_bus.publish_event(
             BulkApiBatchConsumptionEvent(
