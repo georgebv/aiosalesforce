@@ -293,13 +293,23 @@ class TestClientCredentialsFlow:
 
 
 class TestJwtBearerFlow:
+    @pytest.mark.parametrize("is_sandbox", [True, False])
     async def test_auth(
         self,
         config: dict[str, str],
         pseudo_client: Salesforce,
         httpx_mock_router: respx.MockRouter,
         tmp_path: pathlib.Path,
+        is_sandbox: bool,
     ):
+        if is_sandbox:
+            config["base_url"] = "https://example.sandbox.my.salesforce.com"
+            audience = "https://test.salesforce.com"
+        else:
+            config["base_url"] = "https://example.my.salesforce.com"
+            audience = "https://login.salesforce.com"
+        pseudo_client.base_url = config["base_url"]
+
         rsa_private_key = generate_private_key(public_exponent=65537, key_size=2048)
         private_key_path = tmp_path / "private.pem"
         with open(private_key_path, "wb") as f:
@@ -323,7 +333,7 @@ class TestJwtBearerFlow:
                 rsa_private_key.public_key(),
                 algorithms=["RS256"],
                 verify=True,
-                audience="https://login.salesforce.com",
+                audience=audience,
                 issuer=client_id,
             )
             assert payload["sub"] == config["username"]
@@ -333,10 +343,7 @@ class TestJwtBearerFlow:
                     "access_token": expected_access_token,
                     "scope": "full",
                     "instance_url": "https://example.salesforce.com",
-                    "id": (
-                        "https://login.salesforce.com/id"
-                        "/00Dxx0000000000AAA/005xx0000000xxxAAA"
-                    ),
+                    "id": f"{audience}/id/00Dxx0000000000AAA/005xx0000000xxxAAA",
                     "token_type": "Bearer",
                 },
             )

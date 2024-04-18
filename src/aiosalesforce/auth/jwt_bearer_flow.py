@@ -66,8 +66,8 @@ class JwtBearerFlow(Auth):
     async def _acquire_new_access_token(self, client: "Salesforce") -> str:
         payload = {
             "iss": self.client_id,
-            "aud": "https://sandbox.salesforce.com"
-            if "sandbox" in client.base_url.lower()
+            "aud": "https://test.salesforce.com"
+            if client.base_url.endswith(".sandbox.my.salesforce.com")
             else "https://login.salesforce.com",
             "sub": self.username,
             "exp": int(time.time()) + 300,
