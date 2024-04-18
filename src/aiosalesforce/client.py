@@ -64,10 +64,7 @@ class Salesforce:
     """
 
     httpx_client: httpx.AsyncClient
-    base_url: str
-    """Base URL in the format https://[subdomain(s)].my.salesforce.com"""
     auth: Auth
-    version: str
     event_bus: EventBus
     retry_policy: RetryPolicy
     _semaphore: asyncio.Semaphore
@@ -83,26 +80,44 @@ class Salesforce:
         concurrency_limit: int = 100,
     ) -> None:
         self.httpx_client = httpx_client
+        self.base_url = base_url
         self.auth = auth
+        self.version = version
 
-        # Validate version
-        if not (match_ := re.fullmatch(r"^(v)?(\d+)(\.(0)?)?$", version)):
+        self.event_bus = EventBus(event_hooks)
+        self.retry_policy = retry_policy or RetryPolicy()
+        self._semaphore = asyncio.Semaphore(concurrency_limit)
+
+    @property
+    def version(self) -> str:
+        return self.__version
+
+    @version.setter
+    def version(self, value: str) -> None:
+        """API version in the format '60.0'."""
+        if not (match_ := re.fullmatch(r"^(v)?(\d+)(\.(0)?)?$", value)):
             raise ValueError(
-                f"Invalid Salesforce API version: '{version}'. "
+                f"Invalid Salesforce API version: '{value}'. "
                 f"A valid version should look like '60.0'."
             )
-        self.version = f"{match_.groups()[1]}.0"
+        self.__version = f"{match_.groups()[1]}.0"
 
-        # Validate url
+    @property
+    def base_url(self) -> str:
+        """Base URL in the format https://[subdomain(s)].my.salesforce.com"""
+        return self.__base_url
+
+    @base_url.setter
+    def base_url(self, value: str) -> None:
         match_ = re.fullmatch(
             r"(https://[a-zA-Z0-9-]+(\.(sandbox|develop))?\.my\.salesforce\.com).*",
-            base_url.strip(" ").lower(),
+            value.strip(" ").lower(),
         )
         if not match_:
             raise ValueError(
                 "\n".join(
                     [
-                        f"Invalid Salesforce URL: {base_url}",
+                        f"Invalid Salesforce URL: {value}",
                         "Supported formats:",
                         "  Production    : https://[MyDomainName].my.salesforce.com",
                         "  Sandbox       : https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com",
@@ -110,11 +125,7 @@ class Salesforce:
                     ]
                 )
             )
-        self.base_url = str(match_.groups()[0])
-
-        self.event_bus = EventBus(event_hooks)
-        self.retry_policy = retry_policy or RetryPolicy()
-        self._semaphore = asyncio.Semaphore(concurrency_limit)
+        self.__base_url = str(match_.groups()[0])
 
     @wraps(httpx.AsyncClient.request)
     async def request(self, *args, **kwargs) -> httpx.Response:
