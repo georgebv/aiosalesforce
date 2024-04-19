@@ -43,7 +43,7 @@ class BulkClientV2:
         self.salesforce_client = salesforce_client
         self.base_url = "/".join(
             [
-                f"{self.salesforce_client.base_url}",
+                self.salesforce_client.base_url,
                 "services",
                 "data",
                 f"v{self.salesforce_client.version}",

@@ -121,7 +121,7 @@ class BulkIngestClient:
 
     def __init__(self, bulk_client: "BulkClientV2") -> None:
         self.bulk_client = bulk_client
-        self.base_url = "/".join([self.bulk_client.base_url, "ingest"])
+        self.base_url = f"{self.bulk_client.base_url}/ingest"
 
     async def create_job(
         self,

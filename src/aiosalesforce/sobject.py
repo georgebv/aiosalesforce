@@ -3,6 +3,8 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable
 
+import httpx
+
 from aiosalesforce.utils import json_dumps, json_loads
 
 if TYPE_CHECKING:
@@ -36,7 +38,7 @@ class SobjectClient:
         self.salesforce_client = salesforce_client
         self.base_url = "/".join(
             [
-                f"{self.salesforce_client.base_url}",
+                self.salesforce_client.base_url,
                 "services",
                 "data",
                 f"v{self.salesforce_client.version}",
@@ -103,22 +105,23 @@ class SobjectClient:
         Returns
         -------
         dict
-            _description_
+            sObject data.
+
         """
-        url = f"{self.base_url}/{sobject}"
-        if external_id_field is None:
-            url += f"/{id_}"
-        else:
-            url += f"/{external_id_field}/{id_}"
-
-        params: dict = {}
+        url = httpx.URL(
+            "/".join(
+                [
+                    self.base_url,
+                    sobject,
+                    id_ if external_id_field is None else f"{external_id_field}/{id_}",
+                ]
+            )
+        )
         if fields is not None:
-            params["fields"] = ",".join(fields)
-
+            url = url.copy_add_param("fields", ",".join(fields))
         response = await self.salesforce_client.request(
             "GET",
             url,
-            params=params,
             headers={"Accept": "application/json"},
         )
         return json_loads(response.content)
@@ -174,12 +177,16 @@ class SobjectClient:
             If not provided, id_ is treated as a record ID.
 
         """
-        url = f"{self.base_url}/{sobject}"
-        if external_id_field is None:
-            url += f"/{id_}"
-        else:
-            url += f"/{external_id_field}/{id_}"
-        await self.salesforce_client.request("DELETE", url)
+        await self.salesforce_client.request(
+            "DELETE",
+            "/".join(
+                [
+                    self.base_url,
+                    sobject,
+                    id_ if external_id_field is None else f"{external_id_field}/{id_}",
+                ]
+            ),
+        )
 
     async def upsert(
         self,

@@ -11,6 +11,7 @@ import httpx
 from aiosalesforce import __version__
 from aiosalesforce.auth import Auth
 from aiosalesforce.bulk import BulkClientV2
+from aiosalesforce.composite import CompositeClient
 from aiosalesforce.events import (
     Event,
     EventBus,
@@ -132,6 +133,8 @@ class Salesforce:
         """
         Make an HTTP request to Salesforce.
 
+        Raises an appropriate exception if the request is not successful.
+
         """
         request = self.httpx_client.build_request(*args, **kwargs)
         access_token = await self.auth.get_access_token(self)
@@ -206,7 +209,7 @@ class Salesforce:
         Yields
         -------
         dict
-            Query result record.
+            Record.
 
         """
         operation = "query" if not include_all_records else "queryAll"
@@ -246,7 +249,7 @@ class Salesforce:
     @cached_property
     def bulk_v1(self) -> NoReturn:
         """
-        Get Salesforce Bulk API 1.0 client.
+        Salesforce Bulk API 1.0 client.
 
         Use this client to execute bulk ingest and query operations.
 
@@ -256,9 +259,24 @@ class Salesforce:
     @cached_property
     def bulk_v2(self) -> BulkClientV2:
         """
-        Get Salesforce Bulk API 2.0 client.
+        Salesforce Bulk API 2.0 client.
 
         Use this client to execute bulk ingest and query operations.
 
         """
         return BulkClientV2(self)
+
+    @cached_property
+    def composite(self) -> CompositeClient:
+        """
+        Salesforce REST API composite client.
+
+        Use this client to perform composite operations:
+        * Composite Batch
+        * Composite
+        * Composite Graph
+        * sObject Tree
+        * sObject Collections
+
+        """
+        return CompositeClient(self)
