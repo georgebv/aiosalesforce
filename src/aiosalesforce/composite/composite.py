@@ -1,3 +1,5 @@
+import itertools
+
 from functools import cached_property
 from html import unescape
 from typing import TYPE_CHECKING, Iterable, Literal
@@ -12,64 +14,94 @@ if TYPE_CHECKING:
     from aiosalesforce.client import Salesforce
 
 
+class Reference(str):
+    def __init__(self, ref: str) -> None:
+        self.ref = ref
+
+    def __getattr__(self, attr: str) -> "Reference":
+        return Reference(f"{self.ref}.{attr}")
+
+    def __getitem__(self, index) -> "Reference":
+        return Reference(f"{self.ref}[{index}]")
+
+    def __repr__(self) -> str:
+        return f"@{{{self.ref}}}"
+
+    def __str__(self) -> str:
+        return repr(self)
+
+
 class Subrequest:
     """
-    Composite Batch subrequest.
+    Composite subrequest.
 
     Parameters
     ----------
+    reference_id : str
+        Reference ID.
     method : Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
         HTTP method.
     url : str
         Request URL.
-    rich_input : dict, optional
-        Input body for the request.
-    binary_part_name : str, optional
-        Name of the binary part in the multipart request.
-    binary_part_name_alias : str, optional
-        The name parameter in the Content-Disposition header of the binary body part.
+    body: dict, optional
+        Request body.
+    http_headers: dict, optional
+        Request headers.
 
     """
 
+    reference_id: str
     method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
     url: str
-    rich_input: dict | None
-    binary_part_name: str | None
-    binary_part_name_alias: str | None
+    body: dict | None
+    http_headers: dict | None
 
-    __response: dict | None
+    __response: dict | None = None
 
     def __init__(
         self,
+        reference_id: str,
         method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"],
         url: str,
-        rich_input: dict | None = None,
-        binary_part_name: str | None = None,
-        binary_part_name_alias: str | None = None,
+        body: dict | None = None,
+        http_headers: dict | None = None,
     ) -> None:
+        self.reference_id = reference_id
         self.method = method
         self.url = url
-        self.rich_input = rich_input
-        self.binary_part_name = binary_part_name
-        self.binary_part_name_alias = binary_part_name_alias
-
-        if (self.binary_part_name is None) ^ (self.binary_part_name_alias is None):
-            raise ValueError(
-                "Both or neither of 'binary_part_name' and 'binary_part_name_alias' "
-                "must be provided."
-            )
+        self.body = body
+        self.http_headers = http_headers
 
         self.__response = None
 
     def to_dict(self) -> dict:
         payload = {
+            "referenceId": self.reference_id,
             "method": self.method,
             "url": self.url,
-            "richInput": self.rich_input,
-            "binaryPartName": self.binary_part_name,
-            "binaryPartNameAlias": self.binary_part_name_alias,
+            "body": self.body,
+            "httpHeaders": self.http_headers,
         }
         return {key: value for key, value in payload.items() if value is not None}
+
+    @property
+    def reference(self) -> Reference:
+        """
+        Reference result of this subrequest in another subrequest.
+
+        Examples
+        --------
+        >>> account = composite.sobject.create(
+        ...     "Account",
+        ...     {...},
+        ... )
+        ... contact = composite.sobject.create(
+        ...     "Contact",
+        ...     {"Account": account.reference.id, ...}
+        ... )
+
+        """
+        return Reference(self.reference_id)
 
     @property
     def response(self) -> dict:
@@ -83,15 +115,19 @@ class Subrequest:
 
     @property
     def done(self) -> bool:
-        return self.__response is not None
+        return self.response is not None
+
+    @property
+    def response_body(self) -> dict | list | None:
+        return self.response["body"]
+
+    @property
+    def response_http_headers(self) -> dict:
+        return self.response["httpHeaders"]
 
     @property
     def status_code(self) -> int:
-        return self.response["statusCode"]
-
-    @property
-    def result(self) -> dict | list | None:
-        return self.response["result"]
+        return self.response["httpStatusCode"]
 
     @property
     def is_success(self) -> bool:
@@ -100,60 +136,66 @@ class Subrequest:
     def raise_for_status(self) -> None:
         """Raise an exception if this subrequest failed."""
         if not self.is_success:
-            raise_salesforce_error(httpx.Response(self.status_code, json=self.result))
+            raise_salesforce_error(
+                httpx.Response(
+                    self.status_code,
+                    headers=self.response_http_headers,
+                    json=self.response_body,
+                )
+            )
 
 
 class QuerySubrequest(Subrequest):
     @property
     def records(self) -> list[dict]:
         self.raise_for_status()
-        assert isinstance(self.result, dict)
-        return self.result["records"]
+        assert isinstance(self.response_body, dict)
+        return self.response_body["records"]
 
 
 class SobjectCreateSubrequest(Subrequest):
     @property
     def id(self) -> str:
         self.raise_for_status()
-        assert isinstance(self.result, dict)
-        return self.result["id"]
+        assert isinstance(self.response_body, dict)
+        return self.response_body["id"]
 
 
 class SobjectGetSubrequest(Subrequest):
     @property
     def record(self) -> dict:
         self.raise_for_status()
-        assert isinstance(self.result, dict)
-        return self.result
+        assert isinstance(self.response_body, dict)
+        return self.response_body
 
 
 class SobjectUpsertSubrequest(Subrequest):
     @property
     def id(self) -> str:
         self.raise_for_status()
-        assert isinstance(self.result, dict)
-        return self.result["id"]
+        assert isinstance(self.response_body, dict)
+        return self.response_body["id"]
 
     @property
     def created(self) -> bool:
         self.raise_for_status()
-        assert isinstance(self.result, dict)
-        return self.result["created"]
+        assert isinstance(self.response_body, dict)
+        return self.response_body["created"]
 
 
 class SobjectSubrequestClient:
-    composite_batch_request: "CompositeBatchRequest"
+    composite_request: "CompositeRequest"
     base_path: str
     """Base path in the format /services/data/v[version]/sobjects"""
 
-    def __init__(self, composite_batch_request: "CompositeBatchRequest") -> None:
-        self.composite_batch_request = composite_batch_request
+    def __init__(self, composite_request: "CompositeRequest") -> None:
+        self.composite_request = composite_request
         self.base_path = "/".join(
             [
                 "",
                 "services",
                 "data",
-                f"v{self.composite_batch_request.salesforce_client.version}",
+                f"v{self.composite_request.salesforce_client.version}",
                 "sobjects",
             ]
         )
@@ -184,11 +226,12 @@ class SobjectSubrequestClient:
 
         """
         subrequest = SobjectCreateSubrequest(
+            self.composite_request.get_reference_id(f"{sobject}_create"),
             "POST",
             f"{self.base_path}/{sobject}",
-            rich_input=data if isinstance(data, dict) else json_loads(data),
+            body=data if isinstance(data, dict) else json_loads(data),
         )
-        self.composite_batch_request.subrequests.append(subrequest)
+        self.composite_request.add_subrequest(subrequest)
         return subrequest
 
     def get(
@@ -233,8 +276,12 @@ class SobjectSubrequestClient:
         )
         if fields is not None:
             url = url.copy_add_param("fields", ",".join(fields))
-        subrequest = SobjectGetSubrequest("GET", str(url))
-        self.composite_batch_request.subrequests.append(subrequest)
+        subrequest = SobjectGetSubrequest(
+            self.composite_request.get_reference_id(f"{sobject}_get"),
+            "GET",
+            str(url),
+        )
+        self.composite_request.add_subrequest(subrequest)
         return subrequest
 
     def update(
@@ -264,11 +311,12 @@ class SobjectSubrequestClient:
 
         """
         subrequest = Subrequest(
+            self.composite_request.get_reference_id(f"{sobject}_update"),
             "PATCH",
             f"{self.base_path}/{sobject}/{id_}",
-            rich_input=data if isinstance(data, dict) else json_loads(data),
+            body=data if isinstance(data, dict) else json_loads(data),
         )
-        self.composite_batch_request.subrequests.append(subrequest)
+        self.composite_request.add_subrequest(subrequest)
         return subrequest
 
     def delete(
@@ -302,8 +350,12 @@ class SobjectSubrequestClient:
             url += f"/{id_}"
         else:
             url += f"/{external_id_field}/{id_}"
-        subrequest = Subrequest("DELETE", url)
-        self.composite_batch_request.subrequests.append(subrequest)
+        subrequest = Subrequest(
+            self.composite_request.get_reference_id(f"{sobject}_delete"),
+            "DELETE",
+            url,
+        )
+        self.composite_request.add_subrequest(subrequest)
         return subrequest
 
     def upsert(
@@ -365,57 +417,69 @@ class SobjectSubrequestClient:
                 pass
 
         subrequest = SobjectUpsertSubrequest(
+            self.composite_request.get_reference_id(f"{sobject}_upsert"),
             "PATCH",
             f"{self.base_path}/{sobject}/{external_id_field}/{id_}",
-            rich_input=data if isinstance(data, dict) else json_loads(data),
+            body=data if isinstance(data, dict) else json_loads(data),
         )
-        self.composite_batch_request.subrequests.append(subrequest)
+        self.composite_request.add_subrequest(subrequest)
         return subrequest
 
 
-class CompositeBatchRequest:
+class CompositeRequest:
     """
-    Composite Batch request.
+    Composite request.
 
     Parameters
     ----------
     salesforce_client : Salesforce
         Salesforce client.
-    halt_on_error : bool, default False
-        If True, unprocessed subrequests will be halted if any subrequest fails.
+    all_or_none : bool, default False
+        If True, all subrequests are rolled back if any subrequest fails.
+    collate_subrequests : bool, default True
+        If True, independent subrequests are executed by Salesforce in parallel.
     autoraise : bool, default False
-        If True, an exception will be raised if any subrequest fails.
-    group_errors : bool, default False
-        Ignored if `autoraise` is False.
-        If True, raises an ExceptionGroup with all errors.
-        Otherwise, raises the first exception.
+        If True, raises an ExceptionGroup if any subrequest fails.
 
     """
 
     salesforce_client: "Salesforce"
-    halt_on_error: bool
+    all_or_none: bool
+    collate_subrequests: bool
     autoraise: bool
-    group_errors: bool
 
-    subrequests: list[Subrequest]
+    __subrequests: dict[str, Subrequest]
+    __ref_counters: dict[str, itertools.count]
 
     def __init__(
         self,
         salesforce_client: "Salesforce",
-        halt_on_error: bool = False,
+        all_or_none: bool = False,
+        collate_subrequests: bool = True,
         autoraise: bool = False,
-        group_errors: bool = False,
     ) -> None:
         self.salesforce_client = salesforce_client
-        self.halt_on_error = halt_on_error
+        self.all_or_none = all_or_none
+        self.collate_subrequests = collate_subrequests
         self.autoraise = autoraise
-        self.group_errors = group_errors
 
-        self.subrequests = []
+        self.__subrequests = {}
+        self.__ref_counters = {}
+
+    def get_reference_id(self, name: str) -> str:
+        counter = self.__ref_counters.setdefault(name.lower(), itertools.count())
+        return f"{name}_{next(counter)}"
+
+    def add_subrequest(self, subrequest: Subrequest) -> None:
+        if subrequest.reference_id in self.__subrequests:
+            raise ValueError(
+                f"Reference ID '{subrequest.reference_id}' is already in use."
+            )
+        self.__subrequests[subrequest.reference_id] = subrequest
 
     async def execute(self) -> None:
-        """Execute composite batch request and set subrequests' responses."""
-        if len(self.subrequests) == 0:
+        """Execute composite request and set subrequests' responses."""
+        if len(self.__subrequests) == 0:
             return
         response = await self.salesforce_client.request(
             "POST",
@@ -426,38 +490,37 @@ class CompositeBatchRequest:
                     "data",
                     f"v{self.salesforce_client.version}",
                     "composite",
-                    "batch",
                 ]
             ),
             content=json_dumps(
                 {
-                    "haltOnError": self.halt_on_error,
-                    "batchRequests": [
-                        subrequest.to_dict() for subrequest in self.subrequests
+                    "allOrNone": self.all_or_none,
+                    "collateSubrequests": self.collate_subrequests,
+                    "compositeRequest": [
+                        subrequest.to_dict()
+                        for subrequest in self.__subrequests.values()
                     ],
                 }
             ),
             headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
         for subrequest, subrequest_response in zip(
-            self.subrequests,
+            self.__subrequests.values(),
             # Salesforce escapes characters in Composite JSON response as if it was HTML
-            json_loads(unescape(response.content.decode("utf-8")))["results"],
+            json_loads(unescape(response.content.decode("utf-8")))["compositeResponse"],
         ):
             subrequest.response = subrequest_response
         if self.autoraise:
             errors: list[Exception] = []
-            for subrequest in self.subrequests:
+            for subrequest in self.__subrequests.values():
                 try:
                     subrequest.raise_for_status()
                 except Exception as exc:
                     errors.append(exc)
             if len(errors) > 0:
-                if self.group_errors:
-                    raise ExceptionGroup("Composite Batch request error", errors)
-                raise errors[0]
+                raise ExceptionGroup("Composite request error", errors)
 
-    async def __aenter__(self) -> "CompositeBatchRequest":
+    async def __aenter__(self) -> "CompositeRequest":
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
@@ -494,8 +557,9 @@ class CompositeBatchRequest:
                 ]
             )
         ).copy_add_param("q", query)
-        subrequest = QuerySubrequest("GET", str(url))
-        self.subrequests.append(subrequest)
+        reference_id = self.get_reference_id("Query")
+        subrequest = QuerySubrequest(reference_id, "GET", str(url))
+        self.add_subrequest(subrequest)
         return subrequest
 
     @cached_property

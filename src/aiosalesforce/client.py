@@ -276,7 +276,6 @@ class Salesforce:
         * Composite
         * Composite Graph
         * sObject Tree
-        * sObject Collections
 
         """
         return CompositeClient(self)
