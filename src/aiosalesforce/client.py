@@ -236,6 +236,31 @@ class Salesforce:
             if next_url is None:
                 break
 
+    async def get(
+        self,
+        url: str,
+    ) -> bytes:
+        """
+        Get a specific Salesforce URL.
+
+        Parameters
+        ----------
+        url : str
+            Url to get.
+            E.g. "services/data/v60.0/sobjects/EventLogFile/0ATHv000003cMrXABY/LogFile"
+
+        Returns
+        -------
+        bytes
+            Byte representation of results.
+        """
+        if url.startswith("/"):
+            url = url[1:]
+        response = await self.request(
+            "GET", f"{self.base_url}/{url}", headers={"Content-Encoding": "gzip"}
+        )
+        return response.content
+
     @cached_property
     def sobject(self) -> SobjectClient:
         """
