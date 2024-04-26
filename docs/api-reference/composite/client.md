@@ -1,0 +1,1 @@
+::: aiosalesforce.composite.client

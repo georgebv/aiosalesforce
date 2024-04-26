@@ -15,6 +15,14 @@ if TYPE_CHECKING:
 
 
 class Reference(str):
+    """
+    Abstract reference to a subrequest result.
+
+    Used to recursively traverse the reference chain using attribute access ($.attr)
+    and item access ($[index]). For example, `ref.children[0].Id`.
+
+    """
+
     def __init__(self, ref: str) -> None:
         self.ref = ref
 
