@@ -91,11 +91,11 @@ class Salesforce:
 
     @property
     def version(self) -> str:
+        """API version in the format '60.0'."""
         return self.__version
 
     @version.setter
     def version(self, value: str) -> None:
-        """API version in the format '60.0'."""
         if not (match_ := re.fullmatch(r"^(v)?(\d+)(\.(0)?)?$", value)):
             raise ValueError(
                 f"Invalid Salesforce API version: '{value}'. "
