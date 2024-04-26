@@ -247,6 +247,21 @@ class Salesforce:
         return SobjectClient(self)
 
     @cached_property
+    def composite(self) -> CompositeClient:
+        """
+        Salesforce REST API composite client.
+
+        Use this client to perform composite operations:
+        * Composite Batch
+        * Composite
+        * Composite Graph
+        * sObject Tree
+        * sObject Collections
+
+        """
+        return CompositeClient(self)
+
+    @cached_property
     def bulk_v1(self) -> NoReturn:
         """
         Salesforce Bulk API 1.0 client.
@@ -265,17 +280,3 @@ class Salesforce:
 
         """
         return BulkClientV2(self)
-
-    @cached_property
-    def composite(self) -> CompositeClient:
-        """
-        Salesforce REST API composite client.
-
-        Use this client to perform composite operations:
-        * Composite Batch
-        * Composite
-        * Composite Graph
-        * sObject Tree
-
-        """
-        return CompositeClient(self)
