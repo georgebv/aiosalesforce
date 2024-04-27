@@ -54,7 +54,7 @@ Supported APIs:
 | sObject Tree        | 🕒     | Create one or more sObject trees         |
 | sObject Collections | 🕒     | Execute multiple sObject operations      |
 | Bulk API 1.0        | ❌     | Not planned (use Bulk API 2.0)           |
-| Bulk API 2.0        | ✅     | Bulk injest and query operations         |
+| Bulk API 2.0        | ✅     | Bulk ingest and query operations         |
 
 ## Requirements
 
