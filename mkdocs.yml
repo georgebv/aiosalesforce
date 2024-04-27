@@ -14,6 +14,10 @@ nav:
       - Salesforce Client: documentation/client.md
       - SOQL Queries: documentation/soql.md
       - sObject Operations: documentation/sobject.md
+      - Composite API:
+          - Overview: documentation/composite/overview.md
+          - Batch: documentation/composite/batch.md
+          - Composite: documentation/composite/composite.md
       - Bulk API:
           - Bulk API: documentation/bulk/v1.md
           - Bulk API 2.0: documentation/bulk/v2.md
@@ -22,6 +26,11 @@ nav:
       - Authentication: api-reference/auth.md
       - Salesforce Client: api-reference/client.md
       - Sobject Client: api-reference/sobject.md
+      - Composite API:
+          - Client: api-reference/composite/client.md
+          - Batch: api-reference/composite/batch.md
+          - Composite: api-reference/composite/composite.md
+          - Exceptions: api-reference/composite/exceptions.md
       - Bulk API 2.0:
           - Client: api-reference/bulk/v2/client.md
           - Ingest Client: api-reference/bulk/v2/ingest.md

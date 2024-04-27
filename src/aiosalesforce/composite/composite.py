@@ -15,6 +15,14 @@ if TYPE_CHECKING:
 
 
 class Reference(str):
+    """
+    Abstract reference to a subrequest result.
+
+    Used to recursively traverse the reference chain using attribute access ($.attr)
+    and item access ($[index]). For example, `ref.children[0].Id`.
+
+    """
+
     def __init__(self, ref: str) -> None:
         self.ref = ref
 
@@ -105,6 +113,7 @@ class Subrequest:
 
     @property
     def response(self) -> dict:
+        """Subrequest response."""
         if self.__response is None:
             raise InvalidStateError("Subrequest response has not been set")
         return self.__response
@@ -115,22 +124,27 @@ class Subrequest:
 
     @property
     def done(self) -> bool:
+        """Whether the subrequest has been executed."""
         return self.response is not None
 
     @property
     def response_body(self) -> dict | list | None:
+        """Subrequest response body."""
         return self.response["body"]
 
     @property
     def response_http_headers(self) -> dict:
+        """Subrequest response HTTP headers."""
         return self.response["httpHeaders"]
 
     @property
     def status_code(self) -> int:
+        """HTTP status code of the subrequest response."""
         return self.response["httpStatusCode"]
 
     @property
     def is_success(self) -> bool:
+        """Whether this subrequest was successful."""
         return 200 <= self.status_code < 300
 
     def raise_for_status(self) -> None:
@@ -146,44 +160,67 @@ class Subrequest:
 
 
 class QuerySubrequest(Subrequest):
+    """SOQL query subrequest."""
+
     @property
     def records(self) -> list[dict]:
+        """Query records."""
         self.raise_for_status()
         assert isinstance(self.response_body, dict)
         return self.response_body["records"]
 
 
 class SobjectCreateSubrequest(Subrequest):
+    """sObject create subrequest."""
+
     @property
     def id(self) -> str:
+        """ID of the created record."""
         self.raise_for_status()
         assert isinstance(self.response_body, dict)
         return self.response_body["id"]
 
 
 class SobjectGetSubrequest(Subrequest):
+    """sObject get subrequest."""
+
     @property
     def record(self) -> dict:
+        """Retrieved record."""
         self.raise_for_status()
         assert isinstance(self.response_body, dict)
         return self.response_body
 
 
 class SobjectUpsertSubrequest(Subrequest):
+    """sObject upsert subrequest."""
+
     @property
     def id(self) -> str:
+        """ID of the upserted record."""
         self.raise_for_status()
         assert isinstance(self.response_body, dict)
         return self.response_body["id"]
 
     @property
     def created(self) -> bool:
+        """Whether the record was created."""
         self.raise_for_status()
         assert isinstance(self.response_body, dict)
         return self.response_body["created"]
 
 
 class SobjectSubrequestClient:
+    """
+    Client for sObject operations.
+
+    Parameters
+    ----------
+    composite_request : CompositeRequest
+        Composite request.
+
+    """
+
     composite_request: "CompositeRequest"
     base_path: str
     """Base path in the format /services/data/v[version]/sobjects"""
@@ -467,6 +504,22 @@ class CompositeRequest:
         self.__ref_counters = {}
 
     def get_reference_id(self, name: str) -> str:
+        """
+        Get a unique reference ID for a subrequest.
+
+        Parameters
+        ----------
+        name : str
+            Subrequest name.
+            E.g. 'Query' or 'Contact_create'.
+
+        Returns
+        -------
+        str
+            Unique reference ID.
+            E.g., 'Query_0' or 'Contact_create_3'.
+
+        """
         counter = self.__ref_counters.setdefault(name.lower(), itertools.count())
         return f"{name}_{next(counter)}"
 

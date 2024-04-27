@@ -73,6 +73,7 @@ class Subrequest:
 
     @property
     def response(self) -> dict:
+        """Subrequest response."""
         if self.__response is None:
             raise InvalidStateError("Subrequest response has not been set")
         return self.__response
@@ -83,18 +84,22 @@ class Subrequest:
 
     @property
     def done(self) -> bool:
+        """Whether the subrequest has been executed."""
         return self.__response is not None
 
     @property
     def status_code(self) -> int:
+        """HTTP status code of the subrequest response."""
         return self.response["statusCode"]
 
     @property
     def result(self) -> dict | list | None:
+        """Subrequest result (response body)."""
         return self.response["result"]
 
     @property
     def is_success(self) -> bool:
+        """Whether this subrequest was successful."""
         return 200 <= self.status_code < 300
 
     def raise_for_status(self) -> None:
@@ -104,44 +109,67 @@ class Subrequest:
 
 
 class QuerySubrequest(Subrequest):
+    """SOQL query subrequest."""
+
     @property
     def records(self) -> list[dict]:
+        """Query records."""
         self.raise_for_status()
         assert isinstance(self.result, dict)
         return self.result["records"]
 
 
 class SobjectCreateSubrequest(Subrequest):
+    """sObject create subrequest."""
+
     @property
     def id(self) -> str:
+        """ID of the created record."""
         self.raise_for_status()
         assert isinstance(self.result, dict)
         return self.result["id"]
 
 
 class SobjectGetSubrequest(Subrequest):
+    """sObject get subrequest."""
+
     @property
     def record(self) -> dict:
+        """Retrieved record."""
         self.raise_for_status()
         assert isinstance(self.result, dict)
         return self.result
 
 
 class SobjectUpsertSubrequest(Subrequest):
+    """sObject upsert subrequest."""
+
     @property
     def id(self) -> str:
+        """ID of the upserted record."""
         self.raise_for_status()
         assert isinstance(self.result, dict)
         return self.result["id"]
 
     @property
     def created(self) -> bool:
+        """Whether the record was created."""
         self.raise_for_status()
         assert isinstance(self.result, dict)
         return self.result["created"]
 
 
 class SobjectSubrequestClient:
+    """
+    Client for sObject operations.
+
+    Parameters
+    ----------
+    composite_batch_request : CompositeBatchRequest
+        Composite Batch request.
+
+    """
+
     composite_batch_request: "CompositeBatchRequest"
     base_path: str
     """Base path in the format /services/data/v[version]/sobjects"""

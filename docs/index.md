@@ -45,6 +45,20 @@ for interacting with Salesforce's APIs (such as REST and Bulk).
 
 ---
 
+## Supported APIs
+
+| API                 | Status | Description                              |
+| ------------------- | ------ | ---------------------------------------- |
+| SOQL Query          | ✅     | Execute SOQL queries                     |
+| sObject             | ✅     | CRUD operations on Salesforce objects    |
+| Composite Batch     | ✅     | Execute multiple independent subrequests |
+| Composite           | ✅     | Execute multiple dependent subrequests   |
+| Composite Graph     | 🕒     | Execute multiple composite graphs        |
+| sObject Tree        | 🕒     | Create one or more sObject trees         |
+| sObject Collections | 🕒     | Execute multiple sObject operations      |
+| Bulk API 1.0        | ❌     | Not planned (use Bulk API 2.0)           |
+| Bulk API 2.0        | ✅     | Bulk injest and query operations         |
+
 ## Requirements
 
 `aiosalesforce` depends on:
