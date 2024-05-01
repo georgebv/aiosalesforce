@@ -55,9 +55,11 @@ The above would produce the following query string:
 SELECT Id, Name FROM Account WHERE Name = 'My Account'
 ```
 
-By default, the `format_soql` function adds single quotes around the parameter value(s)
-when appropriate (there are exceptions like bools, dates, numbers). You should not
-add your own quotes around the parameter value.
+!!! note "Note"
+
+    The `format_soql` function adds single quotes around the parameter value(s)
+    when appropriate (there are exceptions like bools, dates, numbers). You should not
+    add your own quotes around the parameter value.
 
 ### Collections
 

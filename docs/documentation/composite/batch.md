@@ -37,15 +37,20 @@ You can control batch behavior using the following parameters:
 - `group_errors` - raise ExceptionGroup instead of the first exception
   if `autoraise` is `True`. By default, `False`.
 
-Once a batch is executed, you can access the following attributes for each of its
-subrequests:
+Once a composite batch is executed, you can access the following attributes
+for each of its subrequests:
 
 - `response` - the response dictionary
 - `done` - whether the subrequest has been executed
 - `status_code` - HTTP status code
 - `result` - the result of the subrequest (response body)
 - `is_success` - whether the subrequest was successful
-- `raise_for_status()` - raise an exception if the subrequest failed
+
+You can also raise an exception if the subrequest failed:
+
+```python
+subrequest.raise_for_status()
+```
 
 ## Supported Subrequests
 
@@ -65,8 +70,8 @@ Subrequest results are available via the `records` attribute.
 
 ### sObject
 
-Perform CRUD operations on sObjects using the same interface as the regular
-`salesforce.sobject` resource:
+Perform CRUD operations on sObjects using the same interface as the
+[`salesforce.sobject`](../sobject.md) resource:
 
 ```python
 async with salesforce.composite.batch() as batch:

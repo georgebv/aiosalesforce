@@ -87,12 +87,12 @@ salesforce = Salesforce(
 ```
 
 You can also add or remove callbacks after the client has been created using the
-`subscribe_callback` and `unsubscribe_callback` methods of the `event_loop` attribute
+`subscribe_callback` and `unsubscribe_callback` methods of the `event_bus` attribute
 of the `Salesforce` client.
 
 ```python
-salesforce.event_loop.subscribe_callback(callback)
-salesforce.event_loop.unsubscribe_callback(callback)
+salesforce.event_bus.subscribe_callback(callback)
+salesforce.event_bus.unsubscribe_callback(callback)
 ```
 
 !!! note "Note"
@@ -233,6 +233,9 @@ def track_api_usage(event: Event):
                     },
                 ],
             )
+
+
+salesforce.event_bus.subscribe_callback(track_api_usage)
 ```
 
 #### Log Retries
@@ -249,6 +252,9 @@ async def log_retries(event: Event):
                 f"due to: {event.response or type(event.exception).__name__}. "
                 f"This is attempt {event.attempt}"
             )
+
+
+salesforce.event_bus.subscribe_callback(log_retries)
 ```
 
 #### Log Requests
@@ -261,6 +267,9 @@ async def log_requests(event: Event):
     match event:
         case RequestEvent():
             logger.info("%s %s", event.request.method, event.request.url)
+
+
+salesforce.event_bus.subscribe_callback(log_requests)
 ```
 
 ### Best Practices
@@ -269,7 +278,8 @@ async def log_requests(event: Event):
   functions if you make synchronous IO operations in your callback.
 - Use the `match` or `if` statements to filter out events you are not interested in.
 - Declare one callback for each operation you want to perform. This will make
-  your code run faster and be easier to understand.
+  your code simpler to understand and may make it run faster if you have IO operations
+  inside your callbacks.
 
 ## Retrying Requests
 
@@ -340,15 +350,16 @@ retry_policy = RetryPolicy(
 
 The logic when deciding if a request should be retried is as follows:
 
-1.  Check if `max_retries` or `timeout` is reached for the `RetryPolicy` instance -
-    if so, raise an exception.
-2.  Evaluate rules in order provided. If a rule:
+1.  Check if `max_retries` or `timeout` is reached for the request retrying context
+    in accordance with the client's `retry_policy` - if so, raise an exception.
+2.  Evaluate rules in the order they were provided. If a rule:
     <!-- prettier-ignore -->
     - Doesn't match - move to the next rule
     - Matches
         - Its `max_retries` is exhausted - raise an exception
-        - Its `max_retries` is not exhausted - sleep and retry the request
-3.  If no rule matches - raise an exception.
+        - Its `max_retries` is not exhausted - increment its retry count, sleep,
+          and retry the request
+3.  If none of the rules match - raise an exception.
 
 You can find more information about the `RetryPolicy` class in the
 [API Reference](../api-reference/retries.md#aiosalesforce.retries.RetryPolicy).

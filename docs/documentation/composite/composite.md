@@ -29,7 +29,11 @@ account = composite.sobject.create(
 )
 contact = composite.sobject.create(
     "Contact",
-    {"FirstName": "Jon", "LastName": "Doe", "AccountId": account.reference.id},
+    {
+        "FirstName": "Jon",
+        "LastName": "Doe",
+        "AccountId": account.reference.id,
+    },
 )
 await composite.execute()
 print(account.id)
@@ -53,7 +57,12 @@ of its subrequests:
 - `response_http_headers` - subrequest response HTTP headers
 - `status_code` - HTTP status code
 - `is_success` - whether the subrequest was successful
-- `raise_for_status()` - raise an exception if the subrequest failed
+
+You can also raise an exception if the subrequest failed:
+
+```python
+subrequest.raise_for_status()
+```
 
 ## Referencing Subrequests
 
@@ -97,28 +106,36 @@ Subrequest results are available via the `records` attribute.
 
 ### sObject
 
-Perform CRUD operations on sObjects using the same interface as the regular
-`salesforce.sobject` resource:
+Perform CRUD operations on sObjects using the same interface as the
+[`salesforce.sobject`](../sobject.md) resource:
 
 ```python
-async with salesforce.composite() as composite:
-    contact = composite.sobject.create(
-        "Contact",
-        {"FirstName": "Jon", "LastName": "Doe"},
-    )
+async with salesforce.composite(all_or_none=True) as composite:
     account = composite.sobject.update(
         "Account",
         "0011R00001K1H2IQAV",
         {"Name": "New Name"},
     )
-    opportunity = composite.sobject.upsert(
-        "Opportunity",
+    contact = composite.sobject.upsert(
+        "Contact",
         "ExternalId__c",
-        {"ExternalId__c": "123", "Name": "New Opportunity"},
+        {
+            "ExternalId__c": "123",
+            "FirstName": "Jon",
+            "LastName": "Doe",
+            "AccountId": account.reference.id,
+        },
     )
-print("Created contact:", contact.id)
+    appointment = composite.sobject.create(
+        "Appointment__c",
+        {
+            "Name__c": "Treatment 123",
+            "Contact__c": contact.reference.id,
+        },
+    )
 print("Updated account:", account.id)
-print("Upserted opportunity:", opportunity.id)
+print("Upserted contact:", contact.id)
+print("Created appointment:", appointment.id)
 ```
 
 Depending on the operation, the subrequest result may contain the following attributes:
