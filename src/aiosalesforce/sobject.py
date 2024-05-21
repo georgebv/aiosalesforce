@@ -229,17 +229,20 @@ class SobjectClient:
         if validate:
             if isinstance(data, (str, bytes, bytearray)):
                 data = json_loads(data)
+            else:
+                # Copy payload to avoid mutating the original
+                data = json_loads(json_dumps(data))
             if not isinstance(data, dict):
                 raise TypeError(
                     f"data must be a dict, str, bytes, or bytearray, "
                     f"got {type(data).__name__}"
                 )
             try:
-                if data[external_id_field] != id_:
+                if str(data[external_id_field]) != str(id_):
                     raise ValueError(
                         f"External ID field '{external_id_field}' in data "
                         f"{data[external_id_field]} does not match "
-                        f"the provided external id {id_}"
+                        f"the provided external id '{id_}'"
                     )
                 data.pop(external_id_field)
             except KeyError:
