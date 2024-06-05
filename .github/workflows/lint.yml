@@ -19,7 +19,7 @@ jobs:
           python-version: "3.11"
       # TODO cache rye installation
       - name: Install rye
-        run: curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
+        run: curl -sSf https://rye.astral.sh/get | RYE_INSTALL_OPTION="--yes" bash
       - name: Install project and its dependencies
         run: ~/.rye/shims/rye sync --all-features
       - name: Run Ruff linter
