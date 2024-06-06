@@ -1,0 +1,2125 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for aiosalesforce, a Python library for Salesforce API">
+      
+      
+        <meta name="author" content="George Bocharov">
+      
+      
+        <link rel="canonical" href="https://georgebv.github.io/aiosalesforce/documentation/client/">
+      
+      
+        <link rel="prev" href="../authentication/">
+      
+      
+        <link rel="next" href="../soql/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.13">
+    
+    
+      
+        <title>Salesforce Client - aiosalesforce</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e359304.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../css/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="aiosalesforce" class="md-header__button md-logo" aria-label="aiosalesforce" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M0 224c0 53 43 96 96 96h47.2L290 202.5c17.6-14.1 42.6-14 60.2.2s22.8 38.6 12.8 58.8L333.7 320H416c53 0 96-43 96-96s-43-96-96-96h-1.6c1.1-5.2 1.6-10.5 1.6-16 0-44.2-35.8-80-80-80-24.3 0-46.1 10.9-60.8 28C256.5 24.3 219.1 0 176 0 114.1 0 64 50.1 64 112c0 7.1.7 14.1 1.9 20.8C27.6 145.4 0 181.5 0 224zm330.1 3.6c-5.8-4.7-14.2-4.7-20.1-.1l-160 128c-5.3 4.2-7.4 11.4-5.1 17.8S153.2 384 160 384h70.1l-52.4 104.8c-3.4 6.7-1.6 14.9 4.3 19.6s14.2 4.7 20.1.1l160-128c5.3-4.2 7.4-11.4 5.1-17.8s-8.3-10.7-15.1-10.7h-70.2l52.4-104.8c3.4-6.7 1.6-14.9-4.2-19.6z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            aiosalesforce
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Salesforce Client
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9h-1.9M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69m-9.15 3.96h2.3L12 9l-1.15 3.65Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/georgebv/aiosalesforce" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    georgebv/aiosalesforce
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../introduction/" class="md-tabs__link">
+          
+  
+    
+  
+  Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api-reference/auth/" class="md-tabs__link">
+          
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="aiosalesforce" class="md-nav__button md-logo" aria-label="aiosalesforce" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M0 224c0 53 43 96 96 96h47.2L290 202.5c17.6-14.1 42.6-14 60.2.2s22.8 38.6 12.8 58.8L333.7 320H416c53 0 96-43 96-96s-43-96-96-96h-1.6c1.1-5.2 1.6-10.5 1.6-16 0-44.2-35.8-80-80-80-24.3 0-46.1 10.9-60.8 28C256.5 24.3 219.1 0 176 0 114.1 0 64 50.1 64 112c0 7.1.7 14.1 1.9 20.8C27.6 145.4 0 181.5 0 224zm330.1 3.6c-5.8-4.7-14.2-4.7-20.1-.1l-160 128c-5.3 4.2-7.4 11.4-5.1 17.8S153.2 384 160 384h70.1l-52.4 104.8c-3.4 6.7-1.6 14.9 4.3 19.6s14.2 4.7 20.1.1l160-128c5.3-4.2 7.4-11.4 5.1-17.8s-8.3-10.7-15.1-10.7h-70.2l52.4-104.8c3.4-6.7 1.6-14.9-4.2-19.6z"/></svg>
+
+    </a>
+    aiosalesforce
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/georgebv/aiosalesforce" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    georgebv/aiosalesforce
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Documentation
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Authentication
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Salesforce Client
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Salesforce Client
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event Hooks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Event Hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#callback-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Callback Function
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#keep-track-of-api-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keep Track of API Usage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-retries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Log Retries
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Log Requests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#retrying-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Retrying Requests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Retrying Requests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#retry-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Retry Policy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Response Rule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exception-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exception Rule
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concurrency-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concurrency Limit
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../soql/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SOQL Queries
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sobject/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    sObject Operations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Composite API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            Composite API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../composite/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../composite/batch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Batch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../composite/composite/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Composite
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Bulk API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            Bulk API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bulk/v1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Bulk API
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bulk/v2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Bulk API 2.0
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/auth/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Authentication
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/client/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Salesforce Client
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/sobject/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sobject Client
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Composite API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Composite API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/composite/client/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Client
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/composite/batch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Batch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/composite/composite/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Composite
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/composite/exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Exceptions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Bulk API 2.0
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            Bulk API 2.0
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/bulk/v2/client/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Client
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/bulk/v2/ingest/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ingest Client
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/bulk/v2/csv/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CSV
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/retries/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Retries
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Exceptions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utilities
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event Hooks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Event Hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#callback-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      Callback Function
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#keep-track-of-api-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keep Track of API Usage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-retries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Log Retries
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Log Requests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#retrying-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Retrying Requests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Retrying Requests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#retry-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Retry Policy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Response Rule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exception-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exception Rule
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concurrency-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concurrency Limit
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Salesforce Client</h1>
+
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>When working with <code>aiosalesforce</code> you will always start by creating a <code>Salesforce</code>
+client. The minimum required parameters are:</p>
+<ul>
+<li><code>client</code> - an instance of <code>httpx.AsyncClient</code> used to make HTTP requests</li>
+<li><code>base_url</code> - URL of your Salesforce instance. Examples of valid URLs are:</li>
+<li><code>auth</code> - you need to provide credentials for your Salesforce instance</li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="n">Salesforce</span><span class="p">,</span> <span class="n">SoapLogin</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">httpx</span> <span class="kn">import</span> <span class="n">AsyncClient</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">auth</span> <span class="o">=</span> <span class="n">SoapLogin</span><span class="p">(</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;username&quot;</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;password&quot;</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">security_token</span><span class="o">=</span><span class="s2">&quot;security-token&quot;</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncClient</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="n">salesforce</span> <span class="o">=</span> <span class="n">Salesforce</span><span class="p">(</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>            <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>            <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://your-instance.my.salesforce.com&quot;</span><span class="p">,</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>            <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="p">)</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="c1"># Your code here</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="o">...</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Base URL can be any URL that points to your Salesforce instance login page,
+which ends with <code>.my.salesforce.com</code>. Depending on the type of your Salesforce
+instance, the URL will have this structure:</p>
+<ul>
+<li>Production : <code>https://[MyDomainName].my.salesforce.com</code></li>
+<li>Sandbox : <code>https://[MyDomainName]-[SandboxName].sandbox.my.salesforce.com</code></li>
+<li>Developer org : <code>https://[MyDomainName].develop.my.salesforce.com</code></li>
+</ul>
+<p>Everything after <code>.my.salesforce.com</code> is ignored, so you can pass any URL
+that begins with one of the patterns above. For example, a URL like
+<code>https://acme.my.salesforce.com/any/path?or=query</code> would be perfectly valid.</p>
+</div>
+<p>You can specify the version of the Salesforce API you want to use via the <code>version</code>
+parameter. The default value is the latest version at the time of the library release.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">salesforce</span> <span class="o">=</span> <span class="n">Salesforce</span><span class="p">(</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://your-instance.my.salesforce.com&quot;</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">version</span><span class="o">=</span><span class="s2">&quot;52.0&quot;</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>Valid version values looks like <code>XX</code>, <code>XX.</code>, <code>XX.0</code>, <code>vXX</code>, <code>vXX.</code>, <code>vXX.0</code>, where
+<code>XX</code> is a number. For example, <code>52.0</code> is a valid version but <code>52.1</code> is not.</p>
+<h2 id="event-hooks">Event Hooks<a class="headerlink" href="#event-hooks" title="Permanent link">&para;</a></h2>
+<p>When you use the <code>Salesforce</code> client, it emits certain events to which you can
+subscribe. This allows you to perform custom actions at different stages of the
+request-response lifecycle. For example, you can log requests and responses, monitor
+retries, or track usage of different Salesforce APIs within your application.</p>
+<p>To subscribe to events, you need to define a callback function and then pass it to
+the <code>Salesforce</code> client. The callback function will be called when an event is emitted.
+The callback function will receive an event object as the only argument and will not
+return anything (any return value will be ignored by the client).</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="c1"># Do something with the event</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="o">...</span>
+</span></code></pre></div>
+<p>Once you have defined your callback functions, you can pass them to the <code>Salesforce</code>
+client using the <code>event_hooks</code> parameter.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">salesforce</span> <span class="o">=</span> <span class="n">Salesforce</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="o">...</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">event_hooks</span><span class="o">=</span><span class="p">[</span><span class="n">callback</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>You can also add or remove callbacks after the client has been created using the
+<code>subscribe_callback</code> and <code>unsubscribe_callback</code> methods of the <code>event_bus</code> attribute
+of the <code>Salesforce</code> client.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">salesforce</span><span class="o">.</span><span class="n">event_bus</span><span class="o">.</span><span class="n">subscribe_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">salesforce</span><span class="o">.</span><span class="n">event_bus</span><span class="o">.</span><span class="n">unsubscribe_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Event hooks are executed concurrently and are not guaranteed to be called in
+the order they were added. Do not rely on the order of execution of your
+callback functions. If you need to perform certain operations in a specific order,
+declare them within the same callback function.</p>
+</div>
+<h3 id="events">Events<a class="headerlink" href="#events" title="Permanent link">&para;</a></h3>
+<p>All events emitted by the <code>Salesforce</code> client are instances of the
+<a href="../../api-reference/events/#aiosalesforce.events.Event"><code>Event</code></a> class.
+You can determine the type of event by checking the <code>type</code> attribute of the event
+or by checking the type of the event object.</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th><code>type</code></th>
+<th>When emitted</th>
+<th>Attributes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RequestEvent</code></td>
+<td><code>request</code></td>
+<td>Before making a request to the Salesforce API</td>
+<td><code>request</code></td>
+</tr>
+<tr>
+<td><code>RetryEvent</code></td>
+<td><code>retry</code></td>
+<td>Before request is retried. Depending on the cause, has either <code>response</code> or <code>exception</code> attributes</td>
+<td><code>request</code>, <code>attempt</code>, <code>response</code> (optional), <code>exception</code> (optional)</td>
+</tr>
+<tr>
+<td><code>ResponseEvent</code></td>
+<td><code>response</code></td>
+<td>After an OK (status code &lt; 300) response is received</td>
+<td><code>response</code></td>
+</tr>
+<tr>
+<td><code>RestApiCallConsumptionEvent</code></td>
+<td><code>rest_api_call_consumption</code></td>
+<td>When a Salesforce API call is consumed (includes unsuccessful requests)</td>
+<td><code>response</code>, <code>count</code></td>
+</tr>
+<tr>
+<td><code>BulkApiBatchConsumptionEvent</code></td>
+<td><code>bulk_api_batch_consumption</code></td>
+<td>When a Bulk API (v1 or v2) batch is consumed</td>
+<td><code>response</code>, <code>count</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code>attempt</code> attribute of the <code>RetryEvent</code> indicates sequential number
+of the retry attempt. The first retry attempt is <code>1</code>, the second is <code>2</code>, and so on.
+Attempt <code>0</code> is the initial request and is not a retry.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All events which have the <code>response</code> attribute will contain
+<code>consumed</code> and <code>remaining</code> attributes. The <code>consumed</code> attribute is the number
+of API calls consumed and the <code>remaining</code> attribute is the number of API calls
+remaining in the current 24-hour period. Not all responses will have this
+information (for example, authentication responses) - in such cases,
+these attributes will have value <code>None</code>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><code>BulkApiBatchConsumptionEvent</code> is best-effort and is not guaranteed to accurately
+reflect the number of consumed batches when using Bulk API 2.0. This is because
+Salesforce does not provide a way to track the number of consumed batches and
+<code>aiosalesforce</code> uses heuristics to estimate the number of consumed batches.</p>
+</div>
+<h3 id="callback-function">Callback Function<a class="headerlink" href="#callback-function" title="Permanent link">&para;</a></h3>
+<p>The callback function will receive an event object as the only argument. You cannot
+specify what type of event you want to subscribe to - your callback function will
+receive all events emitted by the <code>Salesforce</code> client. You are responsible for
+filtering out events you are not interested in.</p>
+<p>Using the <code>type</code> attribute:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="n">Event</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="k">match</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">:</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        <span class="k">case</span> <span class="s2">&quot;request&quot;</span><span class="p">:</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>            <span class="c1"># Do something with the request event</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>            <span class="o">...</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        <span class="k">case</span> <span class="s2">&quot;response&quot;</span><span class="p">:</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>            <span class="c1"># Do something with the response event</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>            <span class="o">...</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>            <span class="c1"># Do nothing for other events</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>            <span class="k">pass</span>
+</span></code></pre></div>
+<p>Using the type of the event object:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="n">RequestEvent</span><span class="p">,</span> <span class="n">ResponseEvent</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>        <span class="k">case</span> <span class="n">RequestEvent</span><span class="p">():</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>            <span class="c1"># Do something with the request event</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>            <span class="o">...</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>        <span class="k">case</span> <span class="n">ResponseEvent</span><span class="p">():</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>            <span class="c1"># Do something with the response event</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>            <span class="o">...</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>        <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>            <span class="c1"># Do nothing for other events</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>            <span class="k">pass</span>
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Only use <code>async def</code> if your callback function is asynchronous. If it contains
+synchronous network calls, it will slow down the entire application by blocking
+the event loop. If you need to perform synchronous operations, declare your
+function as a regular function using <code>def</code> - such functions will be run in
+a separate thread to avoid blocking the event loop. You can mix asynchronous
+and synchronous functions when using event hooks - <code>aiosalesforce</code> will use
+an appropriate concurrency model for each of your callback functions.</p>
+</div>
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
+<h4 id="keep-track-of-api-usage">Keep Track of API Usage<a class="headerlink" href="#keep-track-of-api-usage" title="Permanent link">&para;</a></h4>
+<p>An example below shows how you can use event hooks to keep track of the number
+of requests made to the Salesforce API. This can be useful if you want to record and
+monitor your API usage over time. For example, you can use send usage metrics to
+a metrics service like AWS CloudWatch.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="p">(</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="n">Event</span><span class="p">,</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="n">BulkApiBatchConsumptionEvent</span><span class="p">,</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">RestApiCallConsumptionEvent</span><span class="p">,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">)</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="k">def</span> <span class="nf">track_api_usage</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>        <span class="k">case</span> <span class="n">RestApiCallConsumptionEvent</span><span class="p">():</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>            <span class="n">my_metrics_service</span><span class="o">.</span><span class="n">put_metric_data</span><span class="p">(</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>                <span class="n">Namespace</span><span class="o">=</span><span class="s2">&quot;Salesforce&quot;</span><span class="p">,</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>                <span class="n">MetricData</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>                    <span class="p">{</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>                        <span class="s2">&quot;MetricName&quot;</span><span class="p">:</span> <span class="s2">&quot;Salesforce REST API Call Count&quot;</span><span class="p">,</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>                        <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">count</span><span class="p">,</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>                        <span class="s2">&quot;Unit&quot;</span><span class="p">:</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>                    <span class="p">},</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>                <span class="p">],</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>            <span class="p">)</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>        <span class="k">case</span> <span class="n">BulkApiBatchConsumptionEvent</span><span class="p">():</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>            <span class="n">my_metrics_service</span><span class="o">.</span><span class="n">put_metric_data</span><span class="p">(</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>                <span class="n">Namespace</span><span class="o">=</span><span class="s2">&quot;Salesforce&quot;</span><span class="p">,</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>                <span class="n">MetricData</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>                    <span class="p">{</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>                        <span class="s2">&quot;MetricName&quot;</span><span class="p">:</span> <span class="s2">&quot;Salesforce Bulk API Batch Count&quot;</span><span class="p">,</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>                        <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">count</span><span class="p">,</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>                        <span class="s2">&quot;Unit&quot;</span><span class="p">:</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>                    <span class="p">},</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>                <span class="p">],</span>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>            <span class="p">)</span>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a>
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="n">salesforce</span><span class="o">.</span><span class="n">event_bus</span><span class="o">.</span><span class="n">subscribe_callback</span><span class="p">(</span><span class="n">track_api_usage</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="log-retries">Log Retries<a class="headerlink" href="#log-retries" title="Permanent link">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="n">Event</span><span class="p">,</span> <span class="n">RetryEvent</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">log_retries</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="k">case</span> <span class="n">RetryEvent</span><span class="p">():</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>            <span class="nb">print</span><span class="p">(</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>                <span class="sa">f</span><span class="s2">&quot;Retrying </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="si">}</span><span class="s2"> request to </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2"> &quot;</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>                <span class="sa">f</span><span class="s2">&quot;due to: </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">response</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nb">type</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">exception</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">. &quot;</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>                <span class="sa">f</span><span class="s2">&quot;This is attempt </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">attempt</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="p">)</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="n">salesforce</span><span class="o">.</span><span class="n">event_bus</span><span class="o">.</span><span class="n">subscribe_callback</span><span class="p">(</span><span class="n">log_retries</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="log-requests">Log Requests<a class="headerlink" href="#log-requests" title="Permanent link">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="n">Event</span><span class="p">,</span> <span class="n">RequestEvent</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">log_requests</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Event</span><span class="p">):</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="k">match</span> <span class="n">event</span><span class="p">:</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>        <span class="k">case</span> <span class="n">RequestEvent</span><span class="p">():</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="n">salesforce</span><span class="o">.</span><span class="n">event_bus</span><span class="o">.</span><span class="n">subscribe_callback</span><span class="p">(</span><span class="n">log_requests</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Use asynchronous functions if you make asynchronous IO operations and synchronous
+  functions if you make synchronous IO operations in your callback.</li>
+<li>Use the <code>match</code> or <code>if</code> statements to filter out events you are not interested in.</li>
+<li>Declare one callback for each operation you want to perform. This will make
+  your code simpler to understand and may make it run faster if you have IO operations
+  inside your callbacks.</li>
+</ul>
+<h2 id="retrying-requests">Retrying Requests<a class="headerlink" href="#retrying-requests" title="Permanent link">&para;</a></h2>
+<p>You can configure the <code>Salesforce</code> client to automatically retry requests that fail
+for various reasons. This can be useful for handling transient errors which are
+expected to succeed under normal circumstances. For example, you may want to retry
+server errors caued by temporary instabilities in a Salesforce processing node
+working on your request.</p>
+<p>You can control the retry behavior by passing a <code>RetryPolicy</code> instance to the
+<code>retry_policy</code> parameter of the <code>Salesforce</code> client. A <code>RetryPolicy</code> instance
+defines the conditions under which a request should be retried, how many times
+it should be retried, and how long to wait between retries.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="n">RetryPolicy</span><span class="p">,</span> <span class="n">ExceptionRule</span><span class="p">,</span> <span class="n">ResponseRule</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">retry_policy</span> <span class="o">=</span> <span class="n">RetryPolicy</span><span class="p">(</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">response_rules</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>        <span class="n">ResponseRule</span><span class="p">(</span><span class="k">lambda</span> <span class="n">response</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>        <span class="n">ResponseRule</span><span class="p">(</span><span class="k">lambda</span> <span class="n">response</span><span class="p">:</span> <span class="s2">&quot;UNABLE_TO_LOCK_ROW&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">),</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="p">],</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="n">exception_rules</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>        <span class="n">ExceptionRule</span><span class="p">(</span><span class="n">httpx</span><span class="o">.</span><span class="n">TransportError</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="p">],</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    <span class="n">max_retries</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="p">)</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="n">salesforce</span> <span class="o">=</span> <span class="n">Salesforce</span><span class="p">(</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>    <span class="o">...</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>    <span class="n">retry_policy</span><span class="o">=</span><span class="n">retry_policy</span><span class="p">,</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>After the maximum number of retries or when a timeout is reached, the client will
+raise an exception.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, the <code>Salesforce</code> client will retry requests up to 3 times when caused
+by the following errors:</p>
+<ul>
+<li><code>httpx.TransportError</code> (excluding <code>httpx.TimeoutException</code>) - network issues</li>
+<li>Server errors (status code &gt;= 500)</li>
+<li><code>UNABLE_TO_LOCK_ROW</code> error</li>
+<li>Rate limits errors (status code 429 or <code>REQUEST_LIMIT_EXCEEDED</code> in response)</li>
+</ul>
+</div>
+<h3 id="retry-policy">Retry Policy<a class="headerlink" href="#retry-policy" title="Permanent link">&para;</a></h3>
+<p>A <code>RetryPolicy</code> instance is used to define the conditions under which a request
+should be retried, how many times it should be retried, and how long to wait between
+retries. There are two reasons why a request can fail:</p>
+<ul>
+<li>Status code of the response is not OK (status code &gt;= 300)</li>
+<li>An exception is raised during the request</li>
+</ul>
+<p>To handle these two cases, you need to define <code>response_rules</code> and <code>exception_rules</code>
+and pass them to the <code>RetryPolicy</code> instance.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">retry_policy</span> <span class="o">=</span> <span class="n">RetryPolicy</span><span class="p">(</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="n">response_rules</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">],</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="n">exception_rules</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">],</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="n">max_retries</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>The logic when deciding if a request should be retried is as follows:</p>
+<ol>
+<li>Check if <code>max_retries</code> or <code>timeout</code> is reached for the request retrying context
+    in accordance with the client's <code>retry_policy</code> - if so, raise an exception.</li>
+<li>Evaluate rules in the order they were provided. If a rule:
+    <!-- prettier-ignore --><ul>
+<li>Doesn't match - move to the next rule</li>
+<li>Matches<ul>
+<li>Its <code>max_retries</code> is exhausted - raise an exception</li>
+<li>Its <code>max_retries</code> is not exhausted - increment its retry count, sleep,
+  and retry the request</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>If none of the rules match - raise an exception.</li>
+</ol>
+<p>You can find more information about the <code>RetryPolicy</code> class in the
+<a href="../../api-reference/retries/#aiosalesforce.retries.RetryPolicy">API Reference</a>.</p>
+<h3 id="response-rule">Response Rule<a class="headerlink" href="#response-rule" title="Permanent link">&para;</a></h3>
+<p>A response rule is evaluated when a request fails due to a status code
+not being OK (status code &gt;= 300). A response rule needs a function which
+it calls with the response object. If the function returns <code>True</code>, the rule
+matches and the request will be retried.
+You can also specify the maximum number of retries for the rule (by default 3).</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="n">ResponseRule</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">response_rule</span> <span class="o">=</span> <span class="n">ResponseRule</span><span class="p">(</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="k">lambda</span> <span class="n">response</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">500</span><span class="p">,</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>Function used in response rule can be asynchronous. This can be useful if you
+need to make an asynchronous IO operation to determine if the request should
+be retried. If, however, you need to make a synchronous IO operation, you should
+use a regular function - it will be run in a separate thread to avoid blocking
+the event loop.</p>
+<h3 id="exception-rule">Exception Rule<a class="headerlink" href="#exception-rule" title="Permanent link">&para;</a></h3>
+<p>An exception rule is evaluated when a request fails due to an exception being raised
+by <code>httpx</code>. An exception rule needs an exception type on which it retries the request.
+By default, it will always retry on this exception. If you need to have more control
+over when the request should be retried, you can specify a function which it calls
+with the exception object. If the function returns <code>True</code>, the rule matches and the
+request will be retried. You can also specify the maximum number of retries
+for the rule (by default 3).</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span> <span class="nn">aiosalesforce</span> <span class="kn">import</span> <span class="n">ExceptionRule</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">exception_rule</span> <span class="o">=</span> <span class="n">ExceptionRule</span><span class="p">(</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="n">httpx</span><span class="o">.</span><span class="n">TransportError</span><span class="p">,</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="k">lambda</span> <span class="n">exc</span><span class="p">:</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="n">httpx</span><span class="o">.</span><span class="n">TimeoutException</span><span class="p">),</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="n">max_retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>Similar to response rules, the function used in exception rules can be asynchronous
+or synchronous.</p>
+<h2 id="concurrency-limit">Concurrency Limit<a class="headerlink" href="#concurrency-limit" title="Permanent link">&para;</a></h2>
+<p>To limit the number of simultaneous requests to the Salesforce API, you can use
+the <code>concurrency_limit</code> parameter. Salesforce doesn't have a limit on the number
+of concurrent requests for short operations (less than 20 seconds), but generally
+it's a good practice to limit the number of simultaneous requests to avoid
+congestion-related issues.</p>
+<p>By default, the <code>concurrency_limit</code> is set to <code>100</code>. You can change it by passing
+a different value when instantiating the <code>Salesforce</code> client.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">salesforce</span> <span class="o">=</span> <span class="n">Salesforce</span><span class="p">(</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://your-instance.my.salesforce.com&quot;</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">concurrency_limit</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">)</span>
+</span></code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../authentication/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Authentication">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Authentication
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../soql/" class="md-footer__link md-footer__link--next" aria-label="Next: SOQL Queries">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                SOQL Queries
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 George Bocharov
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/georgebv/" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/gbocharov/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.tabs.link", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "navigation.tabs", "navigation.top", "search.suggest"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8d2eff1.min.js"></script>
+      
+    
+  </body>
+</html>
