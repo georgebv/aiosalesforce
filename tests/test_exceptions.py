@@ -1,8 +1,11 @@
+import re
+
 import orjson
 import pytest
 
 from aiosalesforce.exceptions import (
     AuthorizationError,
+    DuplicatesDetectedError,
     MoreThanOneRecordError,
     NotFoundError,
     RequestLimitExceededError,
@@ -31,6 +34,64 @@ def test_more_than_one_record_error():
                     "GET",
                     "https://example.com",
                 ),
+            )
+        )
+
+
+def test_duplicates_detected_error():
+    with pytest.raises(
+        DuplicatesDetectedError,
+        match=re.compile(
+            (
+                r"^\[DUPLICATES_DETECTED\] Use one of these records\?$\n"
+                r"^  003aj000002oTldAAE "
+                r"\(100.0%, FuzzyMatchEngine, Standard_Contact_Match_Rule_v1_1\)"
+            ),
+            flags=re.MULTILINE,
+        ),
+    ):
+        raise_salesforce_error(
+            Response(
+                400,
+                content=orjson.dumps(
+                    [
+                        {
+                            "duplicateResult": {
+                                "allowSave": True,
+                                "duplicateRule": "Standard_Contact_Duplicate_Rule",
+                                "duplicateRuleEntityType": "Contact",
+                                "errorMessage": "Use one of these records?",
+                                "matchResults": [
+                                    {
+                                        "entityType": "Contact",
+                                        "errors": [],
+                                        "matchEngine": "FuzzyMatchEngine",
+                                        "matchRecords": [
+                                            {
+                                                "additionalInformation": [],
+                                                "fieldDiffs": [],
+                                                "matchConfidence": 100.0,
+                                                "record": {
+                                                    "attributes": {
+                                                        "type": "Contact",
+                                                        "url": "...",
+                                                    },
+                                                    "Id": "003aj000002oTldAAE",
+                                                },
+                                            }
+                                        ],
+                                        "rule": "Standard_Contact_Match_Rule_v1_1",
+                                        "size": 1,
+                                        "success": True,
+                                    }
+                                ],
+                            },
+                            "errorCode": "DUPLICATES_DETECTED",
+                            "message": "Use one of these records?",
+                        }
+                    ]
+                ),
+                request=Request("POST", "https://example.com/Contact"),
             )
         )
 
